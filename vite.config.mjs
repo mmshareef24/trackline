@@ -14,9 +14,9 @@ export default defineConfig({
   // Removed `base` to restore default behavior in dev
   plugins: [tsconfigPaths(), react(), tagger()],
   server: {
-    port: "4028",
+    port: 41296,
     host: "0.0.0.0",
-    strictPort: true,
+    strictPort: false,
     allowedHosts: ['.amazonaws.com', '.builtwithrocket.new']
   }
 });

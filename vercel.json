@@ -2,13 +2,3 @@
   "version": 2,
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
-
-
-**Vercel Setup**
-- Add `SLACK_WEBHOOK_URL` in Vercel Project → Settings → Environment Variables (do not commit it).
-- Keep SPA rewriting for deep links:
-```json
-{
-  "version": 2,
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
-}

@@ -1,0 +1,13 @@
+/* Minimal, Tailwind-friendly global styles */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Keep box-sizing consistent without overriding Tailwind’s preflight */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Avoid resetting margins/line-height globally to preserve Tailwind defaults */
