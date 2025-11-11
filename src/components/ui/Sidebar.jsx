@@ -14,7 +14,7 @@ const Sidebar = () => {
       group: 'Core Operations',
       items: [
         {
-          label: 'Company Overview',
+          label: 'Dashboard',
           path: '/company-okr-dashboard',
           icon: 'LayoutDashboard',
           description: 'Company-wide OKR overview'
@@ -290,7 +290,7 @@ const Sidebar = () => {
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border md:hidden">
         <nav className="flex items-center justify-around py-2">
           {[
-            { label: 'Company Overview', path: '/company-okr-dashboard', icon: 'LayoutDashboard' },
+            { label: 'Dashboard', path: '/company-okr-dashboard', icon: 'LayoutDashboard' },
             { label: 'Check-ins', path: '/team-check-ins-and-collaboration', icon: 'Users' },
             { label: 'Timeline', path: '/timeline-and-milestone-management', icon: 'Calendar' },
             { label: 'Analytics', path: '/analytics-and-reporting-dashboard', icon: 'BarChart3' },
