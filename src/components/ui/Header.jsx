@@ -2,15 +2,14 @@ import React, { useState } from 'react';
 import Icon from '../AppIcon';
 import Button from './Button';
 import Input from './Input';
-import { useNavigate } from 'react-router-dom';
+import { useSidebar } from '../../contexts/SidebarContext';
 
 const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
+  const { toggleMobile } = useSidebar();
   const [notifications] = useState([
     { id: 1, title: 'Weekly check-in reminder', message: 'Q4 objectives review due today', time: '2 hours ago', unread: true },
     { id: 2, title: 'Progress update', message: 'Marketing team completed KR milestone', time: '4 hours ago', unread: true },
@@ -90,7 +89,7 @@ const Header = () => {
             variant="ghost"
             size="icon"
             className="md:hidden"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            onClick={toggleMobile}
           >
             <Icon name="Menu" size={20} />
           </Button>
@@ -221,30 +220,6 @@ const Header = () => {
           </div>
         </div>
       </div>
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-border bg-card p-3">
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { label: 'Dashboard', path: '/company-okr-dashboard', icon: 'LayoutDashboard' },
-              { label: 'Objectives', path: '/objective-creation-and-management', icon: 'Target' },
-              { label: 'Progress', path: '/progress-tracking-and-updates', icon: 'TrendingUp' },
-              { label: 'Analytics', path: '/analytics-and-reporting-dashboard', icon: 'BarChart3' },
-              { label: 'Timeline', path: '/timeline-and-milestone-management', icon: 'Calendar' },
-              { label: 'Settings', path: '/system-configuration-and-settings', icon: 'Settings' },
-            ].map((item, idx) => (
-              <button
-                key={idx}
-                onClick={() => { setIsMobileMenuOpen(false); navigate(item.path); }}
-                className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-border hover:bg-muted transition-colors"
-              >
-                <Icon name={item.icon} size={18} />
-                <span className="text-sm">{item.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
       {/* Mobile Search Overlay */}
       {isSearchOpen && (
         <div className="md:hidden border-t border-border bg-card p-4">
