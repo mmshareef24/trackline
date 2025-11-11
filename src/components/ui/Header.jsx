@@ -3,6 +3,8 @@ import Icon from '../AppIcon';
 import Button from './Button';
 import Input from './Input';
 import { useSidebar } from '../../contexts/SidebarContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -10,6 +12,8 @@ const Header = () => {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { toggleMobile } = useSidebar();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [notifications] = useState([
     { id: 1, title: 'Weekly check-in reminder', message: 'Q4 objectives review due today', time: '2 hours ago', unread: true },
     { id: 2, title: 'Progress update', message: 'Marketing team completed KR milestone', time: '4 hours ago', unread: true },
@@ -27,8 +31,25 @@ const Header = () => {
   };
 
   const handleProfileAction = (action) => {
-    console.log('Profile action:', action);
     setIsProfileOpen(false);
+    if (action === 'logout') {
+      logout();
+      navigate('/login');
+      return;
+    }
+    if (action === 'profile') {
+      navigate('/user-and-permission-management');
+      return;
+    }
+    if (action === 'objectives') {
+      navigate('/objective-creation-and-management');
+      return;
+    }
+    if (action === 'settings') {
+      navigate('/system-configuration-and-settings');
+      return;
+    }
+    console.log('Profile action:', action);
   };
 
   const unreadCount = notifications?.filter(n => n?.unread)?.length;
@@ -165,12 +186,23 @@ const Header = () => {
               onClick={() => setIsProfileOpen(!isProfileOpen)}
               className="flex items-center space-x-2"
             >
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-primary-foreground">JD</span>
-              </div>
+              {user?.avatar ? (
+                <img src={user?.avatar} alt={user?.name} className="w-8 h-8 rounded-full object-cover" />
+              ) : (
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                  <span className="text-sm font-medium text-primary-foreground">
+                    {(user?.name || 'Guest')
+                      .split(' ')
+                      .map((n) => n[0])
+                      .slice(0, 2)
+                      .join('')
+                      .toUpperCase()}
+                  </span>
+                </div>
+              )}
               <div className="hidden md:flex flex-col items-start">
-                <span className="text-sm font-medium text-foreground">John Doe</span>
-                <span className="text-xs text-muted-foreground">Product Manager</span>
+                <span className="text-sm font-medium text-foreground">{user?.name || 'Guest'}</span>
+                <span className="text-xs text-muted-foreground">{user?.email || 'Not signed in'}</span>
               </div>
               <Icon name="ChevronDown" size={16} className="text-muted-foreground" />
             </Button>
@@ -179,9 +211,11 @@ const Header = () => {
             {isProfileOpen && (
               <div className="absolute right-0 top-full mt-2 w-56 bg-popover border border-border rounded-lg shadow-lg z-50">
                 <div className="p-3 border-b border-border">
-                  <p className="font-medium text-foreground">John Doe</p>
-                  <p className="text-sm text-muted-foreground">john.doe@company.com</p>
-                  <p className="text-xs text-muted-foreground mt-1">Product Manager</p>
+                  <p className="font-medium text-foreground">{user?.name || 'Guest'}</p>
+                  <p className="text-sm text-muted-foreground">{user?.email || 'Not signed in'}</p>
+                  {user?.role && (
+                    <p className="text-xs text-muted-foreground mt-1">{user?.role}</p>
+                  )}
                 </div>
                 <div className="py-2">
                   <button
@@ -207,13 +241,23 @@ const Header = () => {
                   </button>
                 </div>
                 <div className="py-2 border-t border-border">
-                  <button
-                    onClick={() => handleProfileAction('logout')}
-                    className="w-full px-3 py-2 text-left text-sm text-error hover:bg-muted transition-colors flex items-center space-x-2"
-                  >
-                    <Icon name="LogOut" size={16} />
-                    <span>Sign Out</span>
-                  </button>
+                  {user ? (
+                    <button
+                      onClick={() => handleProfileAction('logout')}
+                      className="w-full px-3 py-2 text-left text-sm text-error hover:bg-muted transition-colors flex items-center space-x-2"
+                    >
+                      <Icon name="LogOut" size={16} />
+                      <span>Sign Out</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => navigate('/login')}
+                      className="w-full px-3 py-2 text-left text-sm text-foreground hover:bg-muted transition-colors flex items-center space-x-2"
+                    >
+                      <Icon name="LogIn" size={16} />
+                      <span>Sign In</span>
+                    </button>
+                  )}
                 </div>
               </div>
             )}
