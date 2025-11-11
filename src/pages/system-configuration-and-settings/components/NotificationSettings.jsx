@@ -11,7 +11,7 @@ const NotificationSettings = () => {
     smtpUsername: 'okr-notifications@company.com',
     smtpPassword: '••••••••••••',
     enableTLS: true,
-    fromName: 'OKR Platform',
+    fromName: 'JASCO Insight',
     fromEmail: 'okr-notifications@company.com',
     replyToEmail: 'support@company.com'
   });
@@ -195,7 +195,7 @@ const NotificationSettings = () => {
             type="text"
             value={emailSettings?.fromName}
             onChange={(e) => handleEmailSettingChange('fromName', e?.target?.value)}
-            placeholder="OKR Platform"
+            placeholder="JASCO Insight"
           />
           
           <Input

@@ -38,11 +38,11 @@ const ObjectiveCreationAndManagement = () => {
       keyResults: [
         {
           id: 101,
-          title: "Achieve $2M in quarterly revenue",
+          title: "Achieve SAR 2M in quarterly revenue",
           metricType: "currency",
           currentValue: 1500000,
           targetValue: 2000000,
-          unit: "$",
+          unit: "SAR",
           progress: 75
         },
         {

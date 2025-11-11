@@ -55,7 +55,7 @@ const DashboardHeader = ({ onQuarterChange, onSearchChange, onFilterToggle, onCr
       {/* Top Row */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Company OKR Dashboard</h1>
+  <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
           <p className="text-muted-foreground mt-1">
             Strategic oversight and goal alignment across all departments
           </p>

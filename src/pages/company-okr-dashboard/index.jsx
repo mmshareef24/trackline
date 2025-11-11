@@ -85,11 +85,10 @@ const CompanyOKRDashboard = () => {
       progress: 75,
       owner: 'Sarah Johnson',
       lastUpdated: '2 hours ago',
-      type: 'keyresult'
     },
     {
       id: 'KR-002',
-      title: 'Generate $2M in New Revenue',
+      title: 'Generate SAR 2M in New Revenue',
       objectiveTitle: 'Launch New Product Line',
       type: 'revenue',
       current: 850000,
@@ -97,7 +96,6 @@ const CompanyOKRDashboard = () => {
       progress: 43,
       owner: 'Michael Chen',
       lastUpdated: '1 day ago',
-      type: 'keyresult'
     },
     {
       id: 'KR-003',
@@ -109,7 +107,6 @@ const CompanyOKRDashboard = () => {
       progress: 65,
       owner: 'Lisa Thompson',
       lastUpdated: '3 hours ago',
-      type: 'keyresult'
     },
     {
       id: 'KR-004',
@@ -121,7 +118,6 @@ const CompanyOKRDashboard = () => {
       progress: 53,
       owner: 'Emily Rodriguez',
       lastUpdated: '5 hours ago',
-      type: 'keyresult'
     }
   ]);
 
@@ -137,7 +133,6 @@ const CompanyOKRDashboard = () => {
       linkedObjectives: 1,
       dueDate: 'Dec 15, 2024',
       timeRemaining: '2 weeks',
-      type: 'initiative'
     },
     {
       id: 'INI-002',
@@ -149,7 +144,6 @@ const CompanyOKRDashboard = () => {
       linkedObjectives: 1,
       dueDate: 'Jan 30, 2025',
       timeRemaining: '6 weeks',
-      type: 'initiative'
     },
     {
       id: 'INI-003',
@@ -161,7 +155,6 @@ const CompanyOKRDashboard = () => {
       linkedObjectives: 1,
       dueDate: 'Mar 31, 2025',
       timeRemaining: '12 weeks',
-      type: 'initiative'
     },
     {
       id: 'INI-004',
@@ -173,7 +166,6 @@ const CompanyOKRDashboard = () => {
       linkedObjectives: 1,
       dueDate: 'Nov 30, 2024',
       timeRemaining: 'Completed',
-      type: 'initiative'
     }
   ]);
 
@@ -190,7 +182,6 @@ const CompanyOKRDashboard = () => {
       linkedItem: 'Increase Customer Satisfaction Score',
       author: 'Sarah Johnson',
       timestamp: '2 hours ago',
-      type: 'progress'
     },
     {
       id: 'PRG-002',
@@ -202,7 +193,6 @@ const CompanyOKRDashboard = () => {
       linkedItem: 'Launch New Product Line',
       author: 'Michael Chen',
       timestamp: '1 day ago',
-      type: 'progress'
     },
     {
       id: 'PRG-003',
@@ -215,7 +205,6 @@ const CompanyOKRDashboard = () => {
       linkedItem: 'Expand Engineering Team',
       author: 'Emily Rodriguez',
       timestamp: '3 days ago',
-      type: 'progress'
     },
     {
       id: 'PRG-004',
@@ -228,7 +217,6 @@ const CompanyOKRDashboard = () => {
       linkedItem: 'Improve System Performance',
       author: 'David Kim',
       timestamp: '1 week ago',
-      type: 'progress'
     }
   ]);
 

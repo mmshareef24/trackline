@@ -10,7 +10,7 @@ const GeneralSettings = () => {
     companyLogo: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=200&fit=crop",
     timezone: "America/New_York",
     dateFormat: "MM/DD/YYYY",
-    currency: "USD",
+    currency: "SAR",
     fiscalYearStart: "January",
     workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
     enableWeekends: false,
@@ -33,6 +33,7 @@ const GeneralSettings = () => {
   ];
 
   const currencies = [
+    { value: "SAR", label: "Saudi Riyal (SAR)" },
     { value: "USD", label: "US Dollar ($)" },
     { value: "EUR", label: "Euro (€)" },
     { value: "GBP", label: "British Pound (£)" },
@@ -66,7 +67,7 @@ const GeneralSettings = () => {
       companyLogo: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=200&fit=crop",
       timezone: "America/New_York",
       dateFormat: "MM/DD/YYYY",
-      currency: "USD",
+      currency: "SAR",
       fiscalYearStart: "January",
       workingDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
       enableWeekends: false,

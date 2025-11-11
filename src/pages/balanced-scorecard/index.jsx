@@ -41,7 +41,7 @@ const BalancedScorecard = () => {
     financial: [
       { label: 'Revenue Growth', value: '12%', trend: 2 },
       { label: 'Gross Margin', value: '48%', trend: 1 },
-      { label: 'Operating Income', value: '$2.4M', trend: -3 },
+      { label: 'Operating Income', value: 'SAR 2.4M', trend: -3 },
     ],
     customer: [
       { label: 'NPS', value: '62', trend: 4 },

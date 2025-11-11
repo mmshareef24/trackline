@@ -192,7 +192,7 @@ const ProgressTrackingAndUpdates = () => {
         },
         {
           id: 302,
-          title: "Achieve $500K revenue from new markets",
+          title: "Achieve SAR 500K revenue from new markets",
           type: "Revenue",
           progress: 20,
           currentValue: 100000,

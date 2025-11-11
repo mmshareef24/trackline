@@ -41,8 +41,8 @@ const Header = () => {
               <Icon name="Target" size={20} color="white" strokeWidth={2.5} />
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-semibold text-foreground">OKR Platform</span>
-              <span className="text-xs text-muted-foreground">Strategic Excellence</span>
+              <span className="text-lg font-semibold text-foreground">JASCO Insight</span>
+              <span className="text-xs text-muted-foreground">Guiding Strategy. Measuring Success.</span>
             </div>
           </div>
         </div>

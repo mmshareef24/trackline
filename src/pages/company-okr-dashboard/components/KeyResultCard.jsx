@@ -16,7 +16,7 @@ const KeyResultCard = ({ keyResult, onEdit, onDelete, onDragStart, onDragEnd, is
   const formatValue = (value, type) => {
     switch (type) {
       case 'percentage': return `${value}%`;
-      case 'revenue': return `$${value?.toLocaleString()}`;
+      case 'revenue': return `SAR ${value?.toLocaleString()}`;
       case 'tickets': return `${value} tickets`;
       default: return value?.toString();
     }

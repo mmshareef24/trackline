@@ -12,7 +12,7 @@ const AllPages = () => {
 
   const pages = [
     { label: 'Analytics & Reporting', path: '/analytics-and-reporting-dashboard', icon: 'BarChart3', description: 'Comprehensive insights and performance analytics' },
-    { label: 'Company OKR Dashboard', path: '/company-okr-dashboard', icon: 'LayoutDashboard', description: 'Company-wide OKR overview' },
+  { label: 'Dashboard', path: '/company-okr-dashboard', icon: 'LayoutDashboard', description: 'Company-wide OKR overview' },
     { label: 'Objective Management', path: '/objective-creation-and-management', icon: 'Target', description: 'Create and manage objectives' },
     { label: 'Progress Tracking', path: '/progress-tracking-and-updates', icon: 'TrendingUp', description: 'Track progress and updates' },
     { label: 'Team Check-ins', path: '/team-check-ins-and-collaboration', icon: 'Users', description: 'Team collaboration and check-ins' },

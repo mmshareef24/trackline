@@ -173,7 +173,7 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
         description: 'Drive significant revenue growth through strategic initiatives and market expansion',
         category: 'Revenue Growth',
         keyResults: [
-          { id: 1, title: 'Achieve $2M in quarterly revenue', metricType: 'currency', currentValue: 0, targetValue: 2000000, unit: '$', progress: 0 },
+          { id: 1, title: 'Achieve SAR 2M in quarterly revenue', metricType: 'currency', currentValue: 0, targetValue: 2000000, unit: 'SAR', progress: 0 },
           { id: 2, title: 'Increase conversion rate to 15%', metricType: 'percentage', currentValue: 0, targetValue: 15, unit: '%', progress: 0 }
         ]
       },
@@ -368,7 +368,7 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
                 <Input
                   label="Key Result Title"
                   type="text"
-                  placeholder="e.g., Increase monthly recurring revenue to $50K"
+                  placeholder="e.g., Increase monthly recurring revenue to SAR 50K"
                   value={keyResultForm?.title}
                   onChange={(e) => handleKeyResultChange('title', e?.target?.value)}
                 />
@@ -381,7 +381,7 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
                       onChange={(e) => {
                         const type = e?.target?.value;
                         handleKeyResultChange('metricType', type);
-                        handleKeyResultChange('unit', type === 'percentage' ? '%' : type === 'currency' ? '$' : '');
+                        handleKeyResultChange('unit', type === 'percentage' ? '%' : type === 'currency' ? 'SAR' : '');
                       }}
                       className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                     >
@@ -395,7 +395,7 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
                   <Input
                     label="Unit"
                     type="text"
-                    placeholder="%, $, units, etc."
+                    placeholder="%, SAR, units, etc."
                     value={keyResultForm?.unit}
                     onChange={(e) => handleKeyResultChange('unit', e?.target?.value)}
                   />
