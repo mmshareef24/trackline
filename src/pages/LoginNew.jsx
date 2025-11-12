@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/ui/Header';
-import Sidebar from '../components/ui/Sidebar';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Icon from '../components/AppIcon';
@@ -49,10 +48,12 @@ const LoginNew = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <Sidebar />
 
-      <main className={`pt-20 px-6 ${isCollapsed ? 'ml-16' : 'ml-60'} transition-all`}>
+      <main className={`pt-20 px-6 transition-all`}>
         <div className="max-w-xl mx-auto">
+          <div className="flex items-center justify-center mb-6">
+            <img src="/assets/images/jasco-logo.png" alt="JASCO" className="h-16" />
+          </div>
           <div className="mb-8">
             <h1 className="text-2xl font-semibold text-foreground">Sign in</h1>
             <p className="text-muted-foreground">Use email or select a role to sign in to the demo.</p>

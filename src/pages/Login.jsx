@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/ui/Header';
-import Sidebar from '../components/ui/Sidebar';
 import Button from '../components/ui/Button';
 import Icon from '../components/AppIcon';
 import { useSidebar } from '../contexts/SidebarContext';
@@ -20,10 +19,12 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <Sidebar />
 
-      <main className={`pt-20 px-6 ${isCollapsed ? 'ml-16' : 'ml-60'} transition-all`}>
+      <main className={`pt-20 px-6 transition-all`}>
         <div className="max-w-3xl mx-auto">
+          <div className="flex items-center justify-center mb-6">
+            <img src="/assets/images/jasco-logo.png" alt="JASCO" className="h-16" />
+          </div>
           <div className="mb-8">
             <h1 className="text-2xl font-semibold text-foreground">Sign in</h1>
             <p className="text-muted-foreground">Choose a demo user to continue.</p>
