@@ -34,7 +34,15 @@ const Login = () => {
             {demoUsers.map((user) => (
               <div key={user.id} className="border border-border rounded-lg p-4 bg-card">
                 <div className="flex items-center space-x-3 mb-3">
-                  <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full" />
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full" referrerPolicy="no-referrer" />
+                  ) : (
+                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                      <span className="text-sm font-medium text-primary-foreground">
+                        {user.name.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                   <div>
                     <div className="font-medium text-foreground">{user.name}</div>
                     <div className="text-sm text-muted-foreground">{user.role} • {user.department}</div>

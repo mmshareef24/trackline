@@ -18,7 +18,7 @@ export const demoUsers = [
     email: 'sarah.johnson@company.com',
     role: 'admin',
     department: 'engineering',
-    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=96',
+    avatar: '',
   },
   {
     id: 'demo-manager',
@@ -26,7 +26,7 @@ export const demoUsers = [
     email: 'michael.chen@company.com',
     role: 'manager',
     department: 'marketing',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96',
+    avatar: '',
   },
   {
     id: 'demo-analyst',
@@ -34,7 +34,7 @@ export const demoUsers = [
     email: 'emily.rodriguez@company.com',
     role: 'analyst',
     department: 'sales',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=96',
+    avatar: '',
   },
 ];
 

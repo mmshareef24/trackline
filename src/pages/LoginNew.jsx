@@ -108,7 +108,15 @@ const LoginNew = () => {
                   onClick={() => fillDemo(u)}
                 >
                   <div className="flex items-center space-x-3">
-                    <img src={u.avatar} alt={u.name} className="w-8 h-8 rounded-full" />
+                    {u.avatar ? (
+                      <img src={u.avatar} alt={u.name} className="w-8 h-8 rounded-full" referrerPolicy="no-referrer" />
+                    ) : (
+                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                        <span className="text-xs font-medium text-primary-foreground">
+                          {u.name.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                     <div>
                       <div className="text-sm font-medium text-foreground">{u.name}</div>
                       <div className="text-xs text-muted-foreground">{u.role} • {u.department}</div>
