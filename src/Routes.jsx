@@ -16,8 +16,8 @@ import ObjectiveCreationAndManagement from './pages/objective-creation-and-manag
 import CompanyOKRDashboard from './pages/company-okr-dashboard';
 import BalancedScorecard from './pages/balanced-scorecard';
 import Login from './pages/Login';
-import LoginNew from './pages/LoginNew';
 import Logout from './pages/Logout';
+import ResetPassword from './pages/ResetPassword';
 
 const Routes = () => {
   const RequireAuth = ({ children }) => {
@@ -38,8 +38,9 @@ const Routes = () => {
         <RouterRoutes>
           {/* Define your route here */}
           <Route path="/login" element={<Login />} />
-          <Route path="/login-new" element={<LoginNew />} />
+          {/* Removed demo login-new route for go-live */}
           <Route path="/logout" element={<Logout />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           <Route path="/" element={<RequireAuth><AnalyticsAndReportingDashboard /></RequireAuth>} />
           <Route path="/user-and-permission-management" element={<RequireAuth><UserAndPermissionManagement /></RequireAuth>} />

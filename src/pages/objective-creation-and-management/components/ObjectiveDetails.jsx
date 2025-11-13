@@ -84,7 +84,7 @@ const ObjectiveDetails = ({ objective, onEdit, onClose }) => {
     <div className="h-full flex flex-col bg-card">
       {/* Header */}
       <div className="p-6 border-b border-border">
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
           <div className="flex-1">
             <div className="flex items-center space-x-3 mb-2">
               <h2 className="text-xl font-semibold text-foreground">{objective?.title}</h2>
@@ -139,7 +139,7 @@ const ObjectiveDetails = ({ objective, onEdit, onClose }) => {
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-1 bg-muted rounded-lg p-1">
+        <div className="flex flex-wrap gap-1 bg-muted rounded-lg p-1">
           {tabs?.map((tab) => (
             <button
               key={tab?.id}
@@ -162,7 +162,7 @@ const ObjectiveDetails = ({ objective, onEdit, onClose }) => {
         {activeTab === 'overview' && (
           <div className="space-y-6">
             {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="p-4 bg-muted/30 rounded-lg">
                 <div className="flex items-center space-x-2 mb-2">
                   <Icon name="Target" size={16} className="text-primary" />

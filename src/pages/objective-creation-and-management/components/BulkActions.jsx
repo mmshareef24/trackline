@@ -6,6 +6,7 @@ const BulkActions = ({ selectedObjectives, onBulkAction, onClearSelection }) => 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
+  const [openSubmenuId, setOpenSubmenuId] = useState(null);
 
   const bulkActions = [
     {
@@ -98,8 +99,8 @@ const BulkActions = ({ selectedObjectives, onBulkAction, onClearSelection }) => 
   return (
     <>
       {/* Bulk Actions Bar */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
-        <div className="bg-card border border-border rounded-lg shadow-lg p-4 flex items-center space-x-4">
+      <div className="fixed bottom-4 left-4 right-4 z-40 lg:bottom-6 lg:left-1/2 lg:right-auto lg:transform lg:-translate-x-1/2">
+        <div className="bg-card border border-border rounded-lg shadow-lg p-4 flex items-center flex-wrap gap-2 md:gap-4">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
               <span className="text-sm font-medium text-primary-foreground">
@@ -111,9 +112,9 @@ const BulkActions = ({ selectedObjectives, onBulkAction, onClearSelection }) => 
             </span>
           </div>
 
-          <div className="h-4 w-px bg-border"></div>
+          <div className="h-4 w-px bg-border hidden md:block"></div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center flex-wrap gap-2">
             {/* Quick Actions */}
             <Button
               variant="ghost"
@@ -148,13 +149,16 @@ const BulkActions = ({ selectedObjectives, onBulkAction, onClearSelection }) => 
               </Button>
 
               {isDropdownOpen && (
-                <div className="absolute bottom-full mb-2 right-0 w-64 bg-popover border border-border rounded-lg shadow-lg z-50">
+                <div className="absolute bottom-full mb-2 right-0 w-64 max-w-[80vw] bg-popover border border-border rounded-lg shadow-lg z-50">
                   <div className="p-2">
                     {bulkActions?.map((action) => (
                       <div key={action?.id}>
                         {action?.submenu ? (
-                          <div className="group relative">
-                            <button className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-muted rounded-md transition-colors">
+                          <div className="relative">
+                            <button
+                              onClick={() => setOpenSubmenuId(openSubmenuId === action?.id ? null : action?.id)}
+                              className="w-full flex items-center justify-between px-3 py-2 text-sm text-foreground hover:bg-muted rounded-md transition-colors"
+                            >
                               <div className="flex items-center space-x-2">
                                 <Icon name={action?.icon} size={16} />
                                 <span>{action?.label}</span>
@@ -163,22 +167,24 @@ const BulkActions = ({ selectedObjectives, onBulkAction, onClearSelection }) => 
                             </button>
                             
                             {/* Submenu */}
-                            <div className="absolute left-full top-0 ml-1 w-48 bg-popover border border-border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                              <div className="p-2">
-                                {action?.submenu?.map((subAction) => (
-                                  <button
-                                    key={subAction?.id}
-                                    onClick={() => handleSubmenuClick(action, subAction)}
-                                    className={`w-full flex items-center space-x-2 px-3 py-2 text-sm hover:bg-muted rounded-md transition-colors ${
-                                      subAction?.color || 'text-foreground'
-                                    }`}
-                                  >
-                                    <Icon name={subAction?.icon} size={16} />
-                                    <span>{subAction?.label}</span>
-                                  </button>
-                                ))}
+                            {openSubmenuId === action?.id && (
+                              <div className="absolute left-0 top-full mt-1 sm:left-full sm:top-0 sm:ml-1 w-48 bg-popover border border-border rounded-lg shadow-lg">
+                                <div className="p-2">
+                                  {action?.submenu?.map((subAction) => (
+                                    <button
+                                      key={subAction?.id}
+                                      onClick={() => handleSubmenuClick(action, subAction)}
+                                      className={`w-full flex items-center space-x-2 px-3 py-2 text-sm hover:bg-muted rounded-md transition-colors ${
+                                        subAction?.color || 'text-foreground'
+                                      }`}
+                                    >
+                                      <Icon name={subAction?.icon} size={16} />
+                                      <span>{subAction?.label}</span>
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
+                            )}
                           </div>
                         ) : (
                           <button
@@ -198,7 +204,7 @@ const BulkActions = ({ selectedObjectives, onBulkAction, onClearSelection }) => 
               )}
             </div>
 
-            <div className="h-4 w-px bg-border"></div>
+            <div className="h-4 w-px bg-border hidden md:block"></div>
 
             <Button
               variant="ghost"

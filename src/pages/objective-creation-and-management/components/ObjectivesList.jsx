@@ -50,8 +50,8 @@ const ObjectivesList = ({ objectives, onSelectObjective, selectedObjectiveId, on
   return (
     <div className="h-full flex flex-col bg-card">
       {/* Header */}
-      <div className="p-6 border-b border-border">
-        <div className="flex items-center justify-between mb-4">
+      <div className="p-4 lg:p-6 border-b border-border">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
           <h2 className="text-xl font-semibold text-foreground">Objectives</h2>
           <Button
             variant="default"
@@ -77,7 +77,7 @@ const ObjectivesList = ({ objectives, onSelectObjective, selectedObjectiveId, on
         </div>
 
         {/* Filters */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center flex-wrap gap-2 sm:gap-4">
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e?.target?.value)}
@@ -187,7 +187,7 @@ const ObjectivesList = ({ objectives, onSelectObjective, selectedObjectiveId, on
       </div>
       {/* Stats Footer */}
       <div className="p-4 border-t border-border bg-muted/30">
-        <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
           <div>
             <div className="text-lg font-semibold text-foreground">
               {objectives?.filter(o => o?.status === 'active')?.length}

@@ -401,10 +401,10 @@ const ObjectiveCreationAndManagement = () => {
       <Header />
       <Sidebar />
       
-      <main className={`transition-all duration-300 pt-16 pb-20 md:pb-4 ${
+      <main className={`transition-all duration-300 pt-16 pb-20 md:pb-4 overflow-x-hidden ${
         isCollapsed ? 'ml-0 md:ml-16' : 'ml-0 md:ml-60'
       }`}>
-        <div className="h-screen flex">
+        <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)]">
           {/* Mobile View Toggle */}
           <div className="lg:hidden fixed top-20 right-4 z-30">
             <div className="flex bg-card border border-border rounded-lg p-1">
@@ -427,7 +427,7 @@ const ObjectiveCreationAndManagement = () => {
           {/* Desktop Split View / Mobile Conditional View */}
           <div className={`${
             viewMode === 'details' ? 'hidden lg:block' : 'block'
-          } w-full lg:w-2/5 border-r border-border`}>
+          } w-full lg:w-2/5 lg:border-r border-border max-w-full overflow-y-auto p-4 sm:p-6`}> 
             <ObjectivesList
               objectives={objectives}
               onSelectObjective={handleSelectObjective}
@@ -441,7 +441,7 @@ const ObjectiveCreationAndManagement = () => {
 
           <div className={`${
             viewMode === 'list' ? 'hidden lg:block' : 'block'
-          } w-full lg:w-3/5`}>
+          } w-full lg:w-3/5 max-w-full overflow-y-auto p-4 sm:p-6`}>
             <ObjectiveDetails
               objective={selectedObjective}
               onEdit={handleEditObjective}
