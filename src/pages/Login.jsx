@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/ui/Header';
 import Button from '../components/ui/Button';
@@ -9,15 +9,17 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../utils/supabaseClient';
 
 const Login = () => {
+  const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
   const { isCollapsed } = useSidebar();
-  const { login } = useAuth();
+  const { login, user, loading } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [mode, setMode] = useState('password'); // 'password' | 'magic'
+  const [mode, setMode] = useState('password'); // 'password' | 'magic' | 'signup'
+  const [oauthLoading, setOauthLoading] = useState(''); // '', 'google', 'github'
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,19 +30,59 @@ const Login = () => {
       if (mode === 'password') {
         await login({ email, password });
         navigate('/company-okr-dashboard');
-      } else {
+      } else if (mode === 'magic') {
         if (!supabase) throw new Error('Auth not configured');
         const { error: otpError } = await supabase.auth.signInWithOtp({
           email,
-          options: { emailRedirectTo: `${window.location.origin}/company-okr-dashboard` },
+          options: { emailRedirectTo: `${siteUrl}/company-okr-dashboard` },
         });
         if (otpError) throw otpError;
         setNotice('Check your email for the magic sign-in link.');
+      } else if (mode === 'signup') {
+        if (!supabase) throw new Error('Auth not configured');
+        if (!email || !password) throw new Error('Enter email and password to sign up.');
+        if (password.length < 6) throw new Error('Password must be at least 6 characters.');
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: `${siteUrl}/company-okr-dashboard` },
+        });
+        if (signUpError) throw signUpError;
+        if (data?.session) {
+          // Immediate login when confirmation is disabled
+          navigate('/company-okr-dashboard');
+        } else {
+          setNotice(
+            'Account created. If email confirmation is enabled, check your inbox for the confirmation link.'
+          );
+          setMode('password');
+        }
       }
     } catch (err) {
       setError(err?.message || 'Sign in failed. Check credentials and try again.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleOAuth = async (provider) => {
+    setError('');
+    setNotice('');
+    setOauthLoading(provider);
+    try {
+      if (!supabase) throw new Error('Auth not configured');
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${siteUrl}/company-okr-dashboard`,
+        },
+      });
+      if (error) throw error;
+      // Browser will redirect to provider; when it returns, AuthContext will detect session
+    } catch (err) {
+      setError(err?.message || `Failed to start ${provider} sign in.`);
+    } finally {
+      setOauthLoading('');
     }
   };
 
@@ -54,7 +96,7 @@ const Login = () => {
       }
       if (!supabase) throw new Error('Auth not configured');
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${siteUrl}/reset-password`,
       });
       if (resetError) throw resetError;
       setNotice('Password reset email sent. Check your inbox.');
@@ -94,6 +136,14 @@ const Login = () => {
             >
               Magic Link
             </Button>
+            <Button
+              type="button"
+              variant={mode === 'signup' ? 'primary' : 'secondary'}
+              onClick={() => setMode('signup')}
+              icon={<Icon name="UserPlus" />}
+            >
+              Sign Up
+            </Button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
@@ -105,7 +155,7 @@ const Login = () => {
               placeholder="you@company.com"
               required
             />
-            {mode === 'password' && (
+            {(mode === 'password' || mode === 'signup') && (
               <Input
                 label="Password"
                 type="password"
@@ -132,7 +182,17 @@ const Login = () => {
               </div>
             )}
             <Button type="submit" variant="primary" className="w-full" loading={submitting} icon={<Icon name="LogIn" />}>
-              {submitting ? (mode === 'password' ? 'Signing in…' : 'Sending link…') : (mode === 'password' ? 'Sign In' : 'Send Magic Link')}
+              {submitting
+                ? (mode === 'password'
+                    ? 'Signing in…'
+                    : mode === 'magic'
+                      ? 'Sending link…'
+                      : 'Creating account…')
+                : (mode === 'password'
+                    ? 'Sign In'
+                    : mode === 'magic'
+                      ? 'Send Magic Link'
+                      : 'Create Account')}
             </Button>
             {mode === 'password' && (
               <button
@@ -144,10 +204,51 @@ const Login = () => {
               </button>
             )}
           </form>
+
+          {/* Social sign-in */}
+          <div className="max-w-md mx-auto mt-6">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+              <span className="flex-1 h-px bg-muted" />
+              <span>Or continue with</span>
+              <span className="flex-1 h-px bg-muted" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                icon={<Icon name="Chrome" />}
+                loading={oauthLoading === 'google'}
+                onClick={() => handleOAuth('google')}
+              >
+                Google
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                icon={<Icon name="Github" />}
+                loading={oauthLoading === 'github'}
+                onClick={() => handleOAuth('github')}
+              >
+                GitHub
+              </Button>
+            </div>
+          </div>
         </div>
       </main>
     </div>
   );
 };
 
-export default Login;
+// Auto-redirect when auth state changes (e.g., after magic link or confirmation)
+const LoginWithRedirect = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/company-okr-dashboard');
+    }
+  }, [user, loading, navigate]);
+  return <Login />;
+};
+
+export default LoginWithRedirect;
