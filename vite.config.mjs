@@ -4,14 +4,14 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import tagger from "@dhiwise/component-tagger";
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  // This changes the out put dir from dist to build
-  // comment this out if that isn't relevant for your project
+export default defineConfig(({ mode }) => ({
+  // Set base path for GitHub Pages deployments via env
+  base: process.env.VITE_BASE_PATH || "/",
+  // This changes the output dir from dist to build
   build: {
     outDir: "build",
     chunkSizeWarningLimit: 2000,
   },
-  // Removed `base` to restore default behavior in dev
   plugins: [tsconfigPaths(), react(), tagger()],
   server: {
     port: 41296,
@@ -19,4 +19,4 @@ export default defineConfig({
     strictPort: false,
     allowedHosts: ['.amazonaws.com', '.builtwithrocket.new']
   }
-});
+}));

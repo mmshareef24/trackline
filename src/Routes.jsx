@@ -29,8 +29,10 @@ const Routes = () => {
     return children;
   };
 
+  const basePath = import.meta.env.VITE_BASE_PATH || "/";
+
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basePath}>
       <ErrorBoundary>
       <AuthProvider>
         <SidebarProvider>

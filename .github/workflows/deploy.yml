@@ -31,6 +31,11 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SITE_URL: https://mmshareef24.github.io/trackline
+          VITE_BASE_PATH: /trackline/
         run: npm run build
 
       - name: Add SPA fallback (copy index.html -> 404.html)
