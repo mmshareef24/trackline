@@ -96,7 +96,7 @@ const FilterSidebar = ({ isOpen, onClose, filters, onFiltersChange }) => {
       {/* Overlay */}
       <div className="fixed inset-0 bg-black/20 z-40 lg:hidden" onClick={onClose} />
       {/* Sidebar */}
-      <div className="fixed left-0 top-16 bottom-0 w-80 bg-card border-r border-border z-50 overflow-y-auto lg:relative lg:top-0">
+      <div className="fixed left-0 top-16 bottom-0 w-full sm:w-80 bg-card border-r border-border z-50 overflow-y-auto lg:relative lg:top-0">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-lg font-semibold text-foreground">Filters</h2>

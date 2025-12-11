@@ -51,7 +51,7 @@ const BoardColumn = ({
   const stats = getColumnStats();
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* Column Header - Fixed height for consistent alignment */}
       <div className="flex items-start justify-between p-4 border-b border-border bg-muted/30 min-h-[80px]">
         <div className="flex items-start space-x-3">

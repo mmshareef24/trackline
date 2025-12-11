@@ -51,9 +51,9 @@ const DashboardHeader = ({ onQuarterChange, onSearchChange, onFilterToggle, onCr
   };
 
   return (
-    <div className="bg-card border-b border-border p-6">
+    <div className="bg-card border-b border-border p-4 md:p-6">
       {/* Top Row */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
   <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
           <p className="text-muted-foreground mt-1">
@@ -61,7 +61,7 @@ const DashboardHeader = ({ onQuarterChange, onSearchChange, onFilterToggle, onCr
           </p>
         </div>
         
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
           {/* Sync Status */}
           <div className="flex items-center space-x-2 px-3 py-2 bg-muted/50 rounded-lg">
             <Icon 
@@ -86,8 +86,8 @@ const DashboardHeader = ({ onQuarterChange, onSearchChange, onFilterToggle, onCr
         </div>
       </div>
       {/* Controls Row */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4">
           {/* Quarter Selector */}
           <div className="flex items-center space-x-2">
             <Icon name="Calendar" size={20} className="text-muted-foreground" />
@@ -95,18 +95,18 @@ const DashboardHeader = ({ onQuarterChange, onSearchChange, onFilterToggle, onCr
               options={quarterOptions}
               value={selectedQuarter}
               onChange={handleQuarterChange}
-              className="w-32"
+              className="w-28 sm:w-32"
             />
           </div>
 
           {/* Search */}
-          <form onSubmit={handleSearchSubmit} className="relative">
+          <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-auto">
             <Input
               type="search"
               placeholder="Search objectives, KRs, initiatives..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e?.target?.value)}
-              className="w-80 pl-10"
+              className="w-full sm:w-64 md:w-80 pl-10"
             />
             <Icon 
               name="Search" 
@@ -131,7 +131,7 @@ const DashboardHeader = ({ onQuarterChange, onSearchChange, onFilterToggle, onCr
           </Button>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
           {/* View Options */}
           <div className="flex items-center space-x-1 bg-muted rounded-lg p-1">
             <Button
@@ -185,7 +185,7 @@ const DashboardHeader = ({ onQuarterChange, onSearchChange, onFilterToggle, onCr
         </div>
       </div>
       {/* Quick Stats */}
-      <div className="flex items-center space-x-6 mt-6 pt-6 border-t border-border">
+      <div className="flex items-center flex-wrap gap-4 mt-6 pt-6 border-t border-border">
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 bg-success rounded-full"></div>
           <span className="text-sm text-muted-foreground">On Track: 24</span>
@@ -202,7 +202,7 @@ const DashboardHeader = ({ onQuarterChange, onSearchChange, onFilterToggle, onCr
           <div className="w-3 h-3 bg-accent rounded-full"></div>
           <span className="text-sm text-muted-foreground">Completed: 12</span>
         </div>
-        <div className="ml-auto text-sm text-muted-foreground">
+        <div className="w-full md:w-auto md:ml-auto text-sm text-muted-foreground">
           Last updated: {new Date()?.toLocaleString()}
         </div>
       </div>
