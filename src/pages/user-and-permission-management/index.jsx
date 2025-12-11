@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Header from '../../components/ui/Header';
 import Sidebar from '../../components/ui/Sidebar';
 import { useSidebar } from '../../contexts/SidebarContext';
+import { useAuth } from '../../contexts/AuthContext';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
 import UserCard from './components/UserCard';
@@ -10,9 +11,12 @@ import UserFilters from './components/UserFilters';
 import BulkActions from './components/BulkActions';
 import UserStats from './components/UserStats';
 import AddUserModal from './components/AddUserModal';
+import { createUser, listUsers, updateUserRole, updateUserStatus } from '../../services/userService';
 
 const UserAndPermissionManagement = () => {
   const { isCollapsed } = useSidebar();
+  const { user, session } = useAuth();
+  const isAdmin = (user?.role || '').toLowerCase() === 'admin';
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -23,194 +27,30 @@ const UserAndPermissionManagement = () => {
   const [showStats, setShowStats] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState('grid'); // grid or list
+  const demoCleanupEnabled = import.meta.env.VITE_ENABLE_DEMO_CLEANUP === 'true';
 
-  // Mock user data
+  // Load users from Supabase
   useEffect(() => {
-    const mockUsers = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      email: "sarah.johnson@company.com",
-      department: "engineering",
-      role: "admin",
-      status: "active",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150",
-      lastLogin: "2 hours ago",
-      permissions: {
-        create_objectives: true,
-        edit_objectives: true,
-        delete_objectives: true,
-        assign_objectives: true,
-        view_progress: true,
-        update_progress: true,
-        view_analytics: true,
-        export_reports: true,
-        manage_team: true,
-        view_team_progress: true,
-        conduct_checkins: true,
-        approve_objectives: true,
-        manage_users: true,
-        system_settings: true,
-        audit_logs: true,
-        backup_restore: true
-      },
-      activityLog: [
-      { action: "Updated system settings", timestamp: "2 hours ago", icon: "Settings" },
-      { action: "Created new user account", timestamp: "1 day ago", icon: "UserPlus" },
-      { action: "Approved team objectives", timestamp: "2 days ago", icon: "CheckCircle" }]
-
-    },
-    {
-      id: 2,
-      name: "Michael Chen",
-      email: "michael.chen@company.com",
-      department: "marketing",
-      role: "manager",
-      status: "active",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150",
-      lastLogin: "1 day ago",
-      permissions: {
-        create_objectives: true,
-        edit_objectives: true,
-        assign_objectives: true,
-        view_progress: true,
-        update_progress: true,
-        view_analytics: true,
-        manage_team: true,
-        view_team_progress: true,
-        conduct_checkins: true,
-        approve_objectives: true
-      },
-      activityLog: [
-      { action: "Conducted team check-in", timestamp: "1 day ago", icon: "Users" },
-      { action: "Updated marketing objectives", timestamp: "3 days ago", icon: "Target" }]
-
-    },
-    {
-      id: 3,
-      name: "Emily Rodriguez",
-      email: "emily.rodriguez@company.com",
-      department: "sales",
-      role: "editor",
-      status: "active",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150",
-      lastLogin: "3 hours ago",
-      permissions: {
-        create_objectives: true,
-        edit_objectives: true,
-        view_progress: true,
-        update_progress: true,
-        view_team_progress: true
-      },
-      activityLog: [
-      { action: "Updated Q4 sales objectives", timestamp: "3 hours ago", icon: "TrendingUp" },
-      { action: "Submitted progress report", timestamp: "1 day ago", icon: "FileText" }]
-
-    },
-    {
-      id: 4,
-      name: "David Kim",
-      email: "david.kim@company.com",
-      department: "hr",
-      role: "viewer",
-      status: "pending",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150",
-      lastLogin: "Never",
-      permissions: {
-        view_progress: true,
-        view_analytics: true,
-        view_team_progress: true
-      },
-      activityLog: []
-    },
-    {
-      id: 5,
-      name: "Lisa Thompson",
-      email: "lisa.thompson@company.com",
-      department: "finance",
-      role: "manager",
-      status: "suspended",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150",
-      lastLogin: "1 week ago",
-      permissions: {
-        create_objectives: true,
-        edit_objectives: true,
-        assign_objectives: true,
-        view_progress: true,
-        update_progress: true,
-        view_analytics: true,
-        manage_team: true,
-        view_team_progress: true,
-        conduct_checkins: true,
-        approve_objectives: true
-      },
-      activityLog: [
-      { action: "Account suspended", timestamp: "1 week ago", icon: "AlertTriangle" }]
-
-    },
-    {
-      id: 6,
-      name: "James Wilson",
-      email: "james.wilson@company.com",
-      department: "operations",
-      role: "editor",
-      status: "active",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150",
-      lastLogin: "5 hours ago",
-      permissions: {
-        create_objectives: true,
-        edit_objectives: true,
-        view_progress: true,
-        update_progress: true,
-        view_team_progress: true
-      },
-      activityLog: [
-      { action: "Updated operations workflow", timestamp: "5 hours ago", icon: "Workflow" },
-      { action: "Created quarterly objectives", timestamp: "2 days ago", icon: "Target" }]
-
-    },
-    {
-      id: 7,
-      name: "Anna Martinez",
-      email: "anna.martinez@company.com",
-      department: "engineering",
-      role: "viewer",
-      status: "active",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-      lastLogin: "30 minutes ago",
-      permissions: {
-        view_progress: true,
-        view_analytics: true,
-        view_team_progress: true
-      },
-      activityLog: [
-      { action: "Viewed team progress", timestamp: "30 minutes ago", icon: "Eye" },
-      { action: "Accessed analytics dashboard", timestamp: "2 hours ago", icon: "BarChart3" }]
-
-    },
-    {
-      id: 8,
-      name: "Robert Brown",
-      email: "robert.brown@company.com",
-      department: "marketing",
-      role: "editor",
-      status: "inactive",
-      avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150",
-      lastLogin: "2 weeks ago",
-      permissions: {
-        create_objectives: true,
-        edit_objectives: true,
-        view_progress: true,
-        update_progress: true,
-        view_team_progress: true
-      },
-      activityLog: [
-      { action: "Account deactivated", timestamp: "2 weeks ago", icon: "UserX" }]
-
-    }];
-
-    setUsers(mockUsers);
+    let isMounted = true;
+    (async () => {
+      try {
+        const rows = await listUsers();
+        if (isMounted) setUsers(rows);
+      } catch (e) {
+        console.error('Failed to load users:', e);
+      }
+    })();
+    return () => { isMounted = false; };
   }, []);
+
+  const refreshUsers = async () => {
+    try {
+      const rows = await listUsers();
+      setUsers(rows);
+    } catch (e) {
+      console.error('Failed to refresh users:', e);
+    }
+  };
 
   // Filter users based on search and filters
   const filteredUsers = useMemo(() => {
@@ -263,26 +103,43 @@ const UserAndPermissionManagement = () => {
   };
 
   // Handle user status toggle
-  const handleToggleUserStatus = (user) => {
+  const handleToggleUserStatus = async (user) => {
     const newStatus = user?.status === 'active' ? 'inactive' : 'active';
-    const updatedUser = {
-      ...user,
-      status: newStatus,
-      activityLog: [
-      {
-        action: `Account ${newStatus === 'active' ? 'activated' : 'deactivated'}`,
-        timestamp: new Date()?.toLocaleString(),
-        icon: newStatus === 'active' ? 'UserCheck' : 'UserX'
-      },
-      ...user?.activityLog]
-
-    };
-    handleUpdateUser(updatedUser);
+    try {
+      await updateUserStatus(user?.id, newStatus);
+      const updatedUser = {
+        ...user,
+        status: newStatus,
+        activityLog: [
+          {
+            action: `Account ${newStatus === 'active' ? 'activated' : 'deactivated'}`,
+            timestamp: new Date()?.toLocaleString(),
+            icon: newStatus === 'active' ? 'UserCheck' : 'UserX'
+          },
+          ...user?.activityLog
+        ]
+      };
+      handleUpdateUser(updatedUser);
+    } catch (e) {
+      console.error('Failed to update user status:', e);
+    }
   };
 
   // Handle bulk actions
-  const handleBulkAction = (actionType, userIds) => {
+  const handleBulkAction = async (actionType, userIds) => {
     const [action, value] = actionType?.split(':');
+
+    try {
+      if (action === 'activate' || action === 'deactivate' || action === 'suspend') {
+        const targetStatus = action === 'activate' ? 'active' : 'inactive';
+        await Promise.all(userIds.map((id) => updateUserStatus(id, targetStatus)));
+      }
+      if (action === 'change_role') {
+        await Promise.all(userIds.map((id) => updateUserRole(id, value)));
+      }
+    } catch (e) {
+      console.error('Bulk action persistence failed:', e);
+    }
 
     setUsers((prev) => prev?.map((user) => {
       if (!userIds?.includes(user?.id)) return user;
@@ -313,21 +170,50 @@ const UserAndPermissionManagement = () => {
 
       // Add activity log entry
       updatedUser.activityLog = [
-      {
-        action: `Bulk action: ${actionType}`,
-        timestamp: new Date()?.toLocaleString(),
-        icon: 'Settings'
-      },
-      ...updatedUser?.activityLog];
-
+        {
+          action: `Bulk action: ${actionType}`,
+          timestamp: new Date()?.toLocaleString(),
+          icon: 'Settings'
+        },
+        ...updatedUser?.activityLog
+      ];
 
       return updatedUser;
     })?.filter(Boolean)); // Remove null entries (deleted users)
   };
 
   // Handle add new user
-  const handleAddUser = (newUser) => {
-    setUsers((prev) => [...prev, newUser]);
+  const handleAddUser = async (newUser) => {
+    try {
+      const created = await createUser({
+        name: newUser?.name,
+        email: newUser?.email,
+        role: newUser?.role,
+        status: newUser?.status,
+      });
+
+      const uiUser = {
+        id: created?.id,
+        name: created?.name,
+        email: created?.email,
+        department: newUser?.department || '',
+        role: newUser?.role || 'viewer',
+        status: newUser?.status || 'pending',
+        avatar: null,
+        lastLogin: 'Never',
+        permissions: newUser?.permissions || {},
+        activityLog: [
+          {
+            action: 'User account created',
+            timestamp: new Date()?.toLocaleString(),
+            icon: 'UserPlus',
+          },
+        ],
+      };
+      setUsers((prev) => [...prev, uiUser]);
+    } catch (e) {
+      console.error('Failed to add user to database:', e);
+    }
   };
 
   // Clear filters
@@ -355,6 +241,47 @@ const UserAndPermissionManagement = () => {
               </p>
             </div>
             <div className="flex items-center space-x-3">
+              {demoCleanupEnabled && isAdmin && (
+                <Button
+                  variant="destructive"
+                  onClick={async () => {
+                    if (!window.confirm('This will delete demo data for the default org. Continue?')) return;
+                    if (!session?.access_token) {
+                      alert('You must be logged in to perform cleanup.');
+                      return;
+                    }
+                    try {
+                      const resp = await fetch('/api/cleanupDemo', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${session?.access_token || ''}`,
+                        },
+                        body: JSON.stringify({ orgName: import.meta.env.VITE_DEFAULT_ORG_NAME || 'Default Org' }),
+                      });
+                      const json = await resp.json();
+                      if (!resp.ok) throw new Error(json?.error || 'Cleanup failed');
+                      await refreshUsers();
+                      alert('Demo data cleared successfully');
+                    } catch (e) {
+                      console.error('Cleanup error:', e);
+                      alert(`Cleanup failed: ${e?.message || e}`);
+                    }
+                  }}
+                  iconName="Trash2"
+                  iconPosition="left"
+                >
+                  Clear Demo Data
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                onClick={refreshUsers}
+                iconName="RefreshCw"
+                iconPosition="left"
+              >
+                Refresh
+              </Button>
               <Button
                 variant="outline"
                 onClick={() => setShowStats(!showStats)}

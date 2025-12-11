@@ -10,6 +10,15 @@ import { supabase } from '../utils/supabaseClient';
 
 const Login = () => {
   const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
+  const supabaseUrlEnv = import.meta.env.VITE_SUPABASE_URL || '';
+  const supabaseProjectRef = (() => {
+    try {
+      const m = supabaseUrlEnv.match(/https?:\/\/([^.]+)\.supabase\.co/i);
+      return m ? m[1] : '';
+    } catch {
+      return '';
+    }
+  })();
   const { isCollapsed } = useSidebar();
   const { login, user, loading } = useAuth();
   const navigate = useNavigate();
@@ -20,6 +29,8 @@ const Login = () => {
   const [submitting, setSubmitting] = useState(false);
   const [mode, setMode] = useState('password'); // 'password' | 'magic' | 'signup'
   const [oauthLoading, setOauthLoading] = useState(''); // '', 'google', 'github'
+  const [checkLoading, setCheckLoading] = useState(false);
+  const [checkResult, setCheckResult] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -102,6 +113,36 @@ const Login = () => {
       setNotice('Password reset email sent. Check your inbox.');
     } catch (err) {
       setError(err?.message || 'Failed to send password reset email.');
+    }
+  };
+
+  const handleCheckSupabase = async () => {
+    setCheckResult('');
+    setCheckLoading(true);
+    try {
+      if (!supabase) {
+        setCheckResult('Supabase not configured (missing env vars).');
+        return;
+      }
+      // Lightweight connectivity check; RLS may block anonymous reads which is fine
+      const { error } = await supabase
+        .from('organizations')
+        .select('id', { head: true })
+        .limit(1);
+      if (error) {
+        const msg = error.message || String(error);
+        if (/permission|JWT|auth|not authorized/i.test(msg)) {
+          setCheckResult('Connected: yes (RLS blocks anonymous reads, expected before login).');
+        } else {
+          setCheckResult(`Connected: no (${msg})`);
+        }
+      } else {
+        setCheckResult('Connected: yes');
+      }
+    } catch (err) {
+      setCheckResult(`Connected: no (${err?.message || 'unknown error'})`);
+    } finally {
+      setCheckLoading(false);
     }
   };
 
@@ -231,6 +272,31 @@ const Login = () => {
               >
                 GitHub
               </Button>
+            </div>
+            {/* Debug: show Supabase project info (URL only, no secrets) */}
+            <div className="mt-4 text-xs text-muted-foreground">
+              {supabaseUrlEnv ? (
+                <span>
+                  Supabase Project: {supabaseProjectRef || 'unknown'} ({supabaseUrlEnv})
+                </span>
+              ) : (
+                <span>Supabase not configured (VITE_SUPABASE_URL is empty)</span>
+              )}
+            </div>
+            {/* Connectivity check */}
+            <div className="mt-2">
+              <Button
+                type="button"
+                variant="secondary"
+                icon={<Icon name="Signal" />}
+                loading={checkLoading}
+                onClick={handleCheckSupabase}
+              >
+                Check Supabase
+              </Button>
+              {checkResult && (
+                <div className="mt-2 text-xs text-muted-foreground">{checkResult}</div>
+              )}
             </div>
           </div>
         </div>

@@ -1,0 +1,147 @@
+import { supabase } from '../utils/supabaseClient';
+
+// Map frontend roles to DB enum (editor -> contributor)
+const mapRole = (role) => {
+  if (!role) return 'contributor';
+  const r = String(role).toLowerCase();
+  if (r === 'editor') return 'contributor';
+  if (['admin', 'manager', 'contributor', 'viewer'].includes(r)) return r;
+  return 'contributor';
+};
+
+// Resolve an organization id to attach users to
+export const getDefaultOrganizationId = async () => {
+  if (!supabase) throw new Error('Supabase not configured');
+  const orgName = import.meta.env.VITE_DEFAULT_ORG_NAME || 'Default Org';
+
+  // Try by name first
+  let { data, error } = await supabase
+    .from('organizations')
+    .select('id, name')
+    .eq('name', orgName)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (data?.id) return data.id;
+
+  // Fallback: pick the first org
+  const fallback = await supabase
+    .from('organizations')
+    .select('id, name')
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (fallback.error) throw fallback.error;
+  if (!fallback.data?.id) throw new Error('No organization found. Seed or create one.');
+  return fallback.data.id;
+};
+
+// Create a user record in the application users table
+export const createUser = async ({ name, email, role, status }) => {
+  if (!supabase) throw new Error('Supabase not configured');
+  const organization_id = await getDefaultOrganizationId();
+  const is_active = String(status).toLowerCase() === 'active';
+  const dbRole = mapRole(role);
+
+  const { data, error } = await supabase
+    .from('users')
+    .insert([{ organization_id, email, name, role: dbRole, is_active }])
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+// Upsert the auth user into the users table on login
+export const upsertAuthUserOnLogin = async (sessionUser) => {
+  if (!supabase || !sessionUser) return;
+  const organization_id = await getDefaultOrganizationId();
+
+  const email = sessionUser.email;
+  const meta = sessionUser.user_metadata || {};
+  const nameFallback = email?.split('@')[0] || 'User';
+  const name = meta.full_name || meta.name || nameFallback;
+
+  // Default role for OAuth sign-ins
+  const role = 'contributor';
+
+  const { error } = await supabase
+    .from('users')
+    .upsert(
+      [{ organization_id, email, name, role, is_active: true }],
+      { onConflict: 'email' }
+    );
+  if (error) {
+    // Log but do not block auth flow
+    console.warn('[Auth] Failed to upsert user record:', error?.message || error);
+  }
+};
+
+export { mapRole };
+
+// Fetch users from Supabase and map to UI-friendly shape
+export const listUsers = async () => {
+  if (!supabase) throw new Error('Supabase not configured');
+
+  const [{ data: users, error: usersErr }, { data: departments, error: deptErr }] = await Promise.all([
+    supabase
+      .from('users')
+      .select('id,email,name,role,is_active,department_id,created_at')
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('departments')
+      .select('id,name'),
+  ]);
+
+  if (usersErr) throw usersErr;
+  if (deptErr) throw deptErr;
+
+  const deptMap = new Map((departments || []).map((d) => [d.id, d.name]));
+
+  const toUiRole = (dbRole) => {
+    const r = String(dbRole || '').toLowerCase();
+    if (r === 'contributor') return 'editor';
+    if (['admin', 'manager', 'viewer'].includes(r)) return r;
+    return 'viewer';
+  };
+
+  return (users || []).map((u) => ({
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    department: deptMap.get(u.department_id) || '',
+    role: toUiRole(u.role),
+    status: u.is_active ? 'active' : 'inactive',
+    avatar: null,
+    lastLogin: 'Never',
+    permissions: {},
+    activityLog: [],
+  }));
+};
+
+export const updateUserStatus = async (id, status) => {
+  if (!supabase) throw new Error('Supabase not configured');
+  const is_active = String(status).toLowerCase() === 'active';
+  const { data, error } = await supabase
+    .from('users')
+    .update({ is_active })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+export const updateUserRole = async (id, uiRole) => {
+  if (!supabase) throw new Error('Supabase not configured');
+  const role = mapRole(uiRole);
+  const { data, error } = await supabase
+    .from('users')
+    .update({ role })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};

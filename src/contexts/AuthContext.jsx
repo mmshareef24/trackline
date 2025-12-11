@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
+import { upsertAuthUserOnLogin } from '../services/userService';
 
 const AuthContext = createContext();
 
@@ -25,6 +26,7 @@ const mapUser = (supaUser) => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Initialize from current session
@@ -37,6 +39,7 @@ export const AuthProvider = ({ children }) => {
           return;
         }
         const { data: sessionData } = await supabase.auth.getSession();
+        setSession(sessionData?.session || null);
         setUser(mapUser(sessionData?.session?.user || null));
       } finally {
         setLoading(false);
@@ -44,8 +47,18 @@ export const AuthProvider = ({ children }) => {
     })();
 
     if (supabase) {
-      unsub = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(mapUser(session?.user || null));
+      unsub = supabase.auth.onAuthStateChange(async (_event, session) => {
+        setSession(session || null);
+        const mapped = mapUser(session?.user || null);
+        setUser(mapped);
+        if (session?.user) {
+          // Best-effort upsert of app user record tied to auth user
+          try {
+            await upsertAuthUserOnLogin(session.user);
+          } catch (e) {
+            console.warn('[Auth] Upsert user failed:', e?.message || e);
+          }
+        }
       });
     }
 
@@ -76,7 +89,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  const value = useMemo(() => ({ user, loading, login, logout }), [user, loading]);
+  const value = useMemo(() => ({ user, session, loading, login, logout }), [user, session, loading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
