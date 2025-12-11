@@ -68,7 +68,7 @@ const BalancedScorecard = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-2xl font-semibold text-foreground">Balanced Scorecard</h1>
+              <h1 className="text-2xl font-semibold text-foreground">Balance Score Card</h1>
               <p className="text-muted-foreground">Financial, Customer, Internal, and Learning perspectives</p>
             </div>
             <div className="flex items-center gap-2">

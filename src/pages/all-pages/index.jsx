@@ -19,7 +19,7 @@ const AllPages = () => {
     { label: 'Timeline & Milestones', path: '/timeline-and-milestone-management', icon: 'Calendar', description: 'Milestone and timeline management' },
     { label: 'User & Permissions', path: '/user-and-permission-management', icon: 'Shield', description: 'User and permission management' },
     { label: 'System Settings', path: '/system-configuration-and-settings', icon: 'Settings', description: 'System configuration and integrations' },
-    { label: 'Balanced Scorecard', path: '/balanced-scorecard', icon: 'PieChart', description: 'Four perspectives with KPIs' },
+    { label: 'Balance Score Card', path: '/balanced-scorecard', icon: 'PieChart', description: 'Four perspectives with KPIs' },
   ];
 
   return (

@@ -60,10 +60,10 @@ const Sidebar = () => {
           description: 'Reports and analytics'
         },
         {
-          label: 'BSC',
+          label: 'Balance Score Card',
           path: '/balanced-scorecard',
           icon: 'PieChart',
-          description: 'Balanced Scorecard overview'
+          description: 'Balance Score Card overview'
         }
       ]
     },

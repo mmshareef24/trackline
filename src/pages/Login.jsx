@@ -273,31 +273,7 @@ const Login = () => {
                 GitHub
               </Button>
             </div>
-            {/* Debug: show Supabase project info (URL only, no secrets) */}
-            <div className="mt-4 text-xs text-muted-foreground">
-              {supabaseUrlEnv ? (
-                <span>
-                  Supabase Project: {supabaseProjectRef || 'unknown'} ({supabaseUrlEnv})
-                </span>
-              ) : (
-                <span>Supabase not configured (VITE_SUPABASE_URL is empty)</span>
-              )}
-            </div>
-            {/* Connectivity check */}
-            <div className="mt-2">
-              <Button
-                type="button"
-                variant="secondary"
-                icon={<Icon name="Signal" />}
-                loading={checkLoading}
-                onClick={handleCheckSupabase}
-              >
-                Check Supabase
-              </Button>
-              {checkResult && (
-                <div className="mt-2 text-xs text-muted-foreground">{checkResult}</div>
-              )}
-            </div>
+            {/* Production: removed debug and connectivity checks */}
           </div>
         </div>
       </main>

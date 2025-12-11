@@ -33,7 +33,7 @@ export default async function handler(req, res) {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const { orgName } = req.body || {};
+  const { orgName, preservePeople = false } = req.body || {};
   const targetOrgName = orgName || process.env.DEFAULT_ORG_NAME || 'Default Org';
 
   try {
@@ -81,30 +81,40 @@ export default async function handler(req, res) {
       .eq('organization_id', orgId);
     if (objDelErr) throw objDelErr;
 
-    // Delete users for org
-    const { error: usersDelErr, count: usersCount } = await supabase
-      .from('users')
-      .delete({ count: 'exact' })
-      .eq('organization_id', orgId);
-    if (usersDelErr) throw usersDelErr;
+    let usersCount = null;
+    let teamsCount = null;
+    let deptsCount = null;
 
-    // Delete teams for org
-    const { error: teamsDelErr, count: teamsCount } = await supabase
-      .from('teams')
-      .delete({ count: 'exact' })
-      .eq('organization_id', orgId);
-    if (teamsDelErr) throw teamsDelErr;
+    if (!preservePeople) {
+      // Delete users for org
+      const { error: usersDelErr, count: usersDelCount } = await supabase
+        .from('users')
+        .delete({ count: 'exact' })
+        .eq('organization_id', orgId);
+      if (usersDelErr) throw usersDelErr;
+      usersCount = usersDelCount ?? null;
 
-    // Delete departments for org
-    const { error: deptsDelErr, count: deptsCount } = await supabase
-      .from('departments')
-      .delete({ count: 'exact' })
-      .eq('organization_id', orgId);
-    if (deptsDelErr) throw deptsDelErr;
+      // Delete teams for org
+      const { error: teamsDelErr, count: teamsDelCount } = await supabase
+        .from('teams')
+        .delete({ count: 'exact' })
+        .eq('organization_id', orgId);
+      if (teamsDelErr) throw teamsDelErr;
+      teamsCount = teamsDelCount ?? null;
+
+      // Delete departments for org
+      const { error: deptsDelErr, count: deptsDelCount } = await supabase
+        .from('departments')
+        .delete({ count: 'exact' })
+        .eq('organization_id', orgId);
+      if (deptsDelErr) throw deptsDelErr;
+      deptsCount = deptsDelCount ?? null;
+    }
 
     return res.status(200).json({
       ok: true,
       organization: targetOrgName,
+      preservePeople,
       deleted: {
         objectives: objCount ?? null,
         users: usersCount ?? null,
