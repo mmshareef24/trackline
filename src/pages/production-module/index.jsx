@@ -8,6 +8,7 @@ import Select from '../../components/ui/Select';
 import { getModuleKpis } from '../../utils/kpiConfig';
 import { formatValue, formatTrend, trendClass, formatDelta, deltaClass } from '../../utils/kpiFormat';
 import ModuleObjectives from '../../components/ModuleObjectives';
+import ModuleObjectivesList from '../../components/ModuleObjectivesList';
 
 const ProductionModule = () => {
   const { isCollapsed } = useSidebar();
@@ -161,6 +162,8 @@ const ProductionModule = () => {
 
           {/* Module Objectives */}
           <ModuleObjectives moduleKey="production" moduleLabel="Production" />
+          {/* Module Objectives List */}
+          <ModuleObjectivesList moduleKey="production" moduleLabel="Production" />
 
           {/* Lines status */}
           <div className="bg-card border border-border rounded-lg">
