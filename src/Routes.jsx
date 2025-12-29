@@ -18,6 +18,7 @@ import BalancedScorecard from './pages/balanced-scorecard';
 import Login from './pages/Login';
 import Logout from './pages/Logout';
 import ResetPassword from './pages/ResetPassword';
+import ProductionModule from './pages/production-module';
 
 const Routes = () => {
   const RequireAuth = ({ children }) => {
@@ -54,6 +55,7 @@ const Routes = () => {
           <Route path="/objective-creation-and-management" element={<RequireAuth><ObjectiveCreationAndManagement /></RequireAuth>} />
           <Route path="/company-okr-dashboard" element={<RequireAuth><CompanyOKRDashboard /></RequireAuth>} />
           <Route path="/balanced-scorecard" element={<RequireAuth><BalancedScorecard /></RequireAuth>} />
+          <Route path="/production-module" element={<RequireAuth><ProductionModule /></RequireAuth>} />
           <Route path="/all-pages" element={<RequireAuth><AllPages /></RequireAuth>} />
           <Route path="/more" element={<RequireAuth><AllPages /></RequireAuth>} />
           <Route path="*" element={<NotFound />} />

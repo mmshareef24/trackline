@@ -30,6 +30,12 @@ const Sidebar = () => {
           path: '/progress-tracking-and-updates',
           icon: 'TrendingUp',
           description: 'Track progress and updates'
+        },
+        {
+          label: 'Production',
+          path: '/production-module',
+          icon: 'Cog',
+          description: 'Factory production overview'
         }
       ]
     },

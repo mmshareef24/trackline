@@ -20,6 +20,7 @@ const AllPages = () => {
     { label: 'User & Permissions', path: '/user-and-permission-management', icon: 'Shield', description: 'User and permission management' },
     { label: 'System Settings', path: '/system-configuration-and-settings', icon: 'Settings', description: 'System configuration and integrations' },
     { label: 'Balance Scorecard', path: '/balanced-scorecard', icon: 'PieChart', description: 'Four perspectives with KPIs' },
+    { label: 'Production Module', path: '/production-module', icon: 'Cog', description: 'Real-time production status and work orders' },
   ];
 
   return (
