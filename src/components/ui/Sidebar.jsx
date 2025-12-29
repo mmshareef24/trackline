@@ -31,12 +31,7 @@ const Sidebar = () => {
           icon: 'TrendingUp',
           description: 'Track progress and updates'
         },
-        {
-          label: 'Production',
-          path: '/production-module',
-          icon: 'Cog',
-          description: 'Factory production overview'
-        }
+        
       ]
     },
     {
@@ -81,6 +76,12 @@ const Sidebar = () => {
           path: '/executive-dashboard',
           icon: 'LayoutDashboard',
           description: 'Cross-module KPIs for leadership'
+        },
+        {
+          label: 'Production',
+          path: '/production-module',
+          icon: 'Cog',
+          description: 'Factory production overview'
         },
         {
           label: 'Project',
