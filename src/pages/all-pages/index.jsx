@@ -21,6 +21,10 @@ const AllPages = () => {
     { label: 'System Settings', path: '/system-configuration-and-settings', icon: 'Settings', description: 'System configuration and integrations' },
     { label: 'Balance Scorecard', path: '/balanced-scorecard', icon: 'PieChart', description: 'Four perspectives with KPIs' },
     { label: 'Production Module', path: '/production-module', icon: 'Cog', description: 'Real-time production status and work orders' },
+    { label: 'Project Module', path: '/project-module', icon: 'KanbanSquare', description: 'Portfolio overview, status, and budgets' },
+    { label: 'Finance Module', path: '/finance-module', icon: 'Banknote', description: 'Revenue, expenses, and cash flow' },
+    { label: 'Sales Module', path: '/sales-module', icon: 'Handshake', description: 'Pipeline, conversion, and opportunities' },
+    { label: 'Supply Chain Module', path: '/supply-chain-module', icon: 'Truck', description: 'Inventory, OTIF, and purchase orders' },
   ];
 
   return (

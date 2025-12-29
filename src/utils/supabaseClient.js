@@ -7,6 +7,11 @@ let supabaseInstance = null;
 try {
   if (supabaseUrl && supabaseAnonKey) {
     supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+    try {
+      const host = new URL(supabaseUrl).hostname;
+      const ref = host.split('.')[0] || host;
+      console.info('[Auth] Supabase client initialized', { ref, url: supabaseUrl });
+    } catch {}
   } else {
     // Helpful warning during development; avoids crashing imports when envs are missing
     console.warn('[Auth] Supabase env not set. Define VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');

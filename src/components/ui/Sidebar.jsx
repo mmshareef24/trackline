@@ -74,6 +74,41 @@ const Sidebar = () => {
       ]
     },
     {
+      group: 'Business Modules',
+      items: [
+        {
+          label: 'Executive',
+          path: '/executive-dashboard',
+          icon: 'LayoutDashboard',
+          description: 'Cross-module KPIs for leadership'
+        },
+        {
+          label: 'Project',
+          path: '/project-module',
+          icon: 'KanbanSquare',
+          description: 'Portfolio overview and status'
+        },
+        {
+          label: 'Finance',
+          path: '/finance-module',
+          icon: 'Banknote',
+          description: 'Revenue, expenses, and cash flow'
+        },
+        {
+          label: 'Sales',
+          path: '/sales-module',
+          icon: 'Handshake',
+          description: 'Pipeline and opportunities'
+        },
+        {
+          label: 'Supply Chain',
+          path: '/supply-chain-module',
+          icon: 'Truck',
+          description: 'Inventory, OTIF, and purchase orders'
+        }
+      ]
+    },
+    {
       group: 'Utilities',
       items: [
         {

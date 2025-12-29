@@ -214,6 +214,16 @@ const Login = () => {
                 </div>
               </div>
             )}
+            {error && String(error).toLowerCase().includes('failed to fetch') && (
+              <div className="p-3 border border-warning/30 bg-warning/10 rounded text-xs text-warning">
+                <div className="flex items-center space-x-2">
+                  <Icon name="Info" size={14} />
+                  <span>
+                    Troubleshooting: This usually indicates a network/CORS issue. Try incognito, disable extensions/ad blockers, and ensure Supabase Auth has these allowed redirects: {`${siteUrl}/reset-password`} and {`${siteUrl}/company-okr-dashboard`}.
+                  </span>
+                </div>
+              </div>
+            )}
             {notice && (
               <div className="p-3 border border-info/30 bg-info/10 rounded text-sm text-info">
                 <div className="flex items-center space-x-2">
@@ -252,6 +262,25 @@ const Login = () => {
               <span className="flex-1 h-px bg-muted" />
               <span>Or continue with</span>
               <span className="flex-1 h-px bg-muted" />
+            </div>
+            {/* Auth configuration hint for troubleshooting */}
+            <div className="mt-2 text-xs text-muted-foreground">
+              <span>Auth ref: {supabaseProjectRef || 'not configured'} • Redirect origin: {siteUrl}</span>
+            </div>
+            {/* Lightweight connectivity check */}
+            <div className="mt-2 text-xs">
+              <Button
+                type="button"
+                variant="secondary"
+                loading={checkLoading}
+                onClick={handleCheckSupabase}
+                icon={<Icon name="Link" />}
+              >
+                Check connectivity
+              </Button>
+              {checkResult && (
+                <div className="mt-2 text-muted-foreground">{checkResult}</div>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-2">
               <Button

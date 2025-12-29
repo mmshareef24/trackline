@@ -19,6 +19,11 @@ import Login from './pages/Login';
 import Logout from './pages/Logout';
 import ResetPassword from './pages/ResetPassword';
 import ProductionModule from './pages/production-module';
+import ProjectModule from './pages/project-module';
+import FinanceModule from './pages/finance-module';
+import SalesModule from './pages/sales-module';
+import SupplyChainModule from './pages/supply-chain-module';
+import ExecutiveDashboard from './pages/executive-dashboard';
 
 const Routes = () => {
   const RequireAuth = ({ children }) => {
@@ -55,7 +60,12 @@ const Routes = () => {
           <Route path="/objective-creation-and-management" element={<RequireAuth><ObjectiveCreationAndManagement /></RequireAuth>} />
           <Route path="/company-okr-dashboard" element={<RequireAuth><CompanyOKRDashboard /></RequireAuth>} />
           <Route path="/balanced-scorecard" element={<RequireAuth><BalancedScorecard /></RequireAuth>} />
+          <Route path="/executive-dashboard" element={<RequireAuth><ExecutiveDashboard /></RequireAuth>} />
           <Route path="/production-module" element={<RequireAuth><ProductionModule /></RequireAuth>} />
+          <Route path="/project-module" element={<RequireAuth><ProjectModule /></RequireAuth>} />
+          <Route path="/finance-module" element={<RequireAuth><FinanceModule /></RequireAuth>} />
+          <Route path="/sales-module" element={<RequireAuth><SalesModule /></RequireAuth>} />
+          <Route path="/supply-chain-module" element={<RequireAuth><SupplyChainModule /></RequireAuth>} />
           <Route path="/all-pages" element={<RequireAuth><AllPages /></RequireAuth>} />
           <Route path="/more" element={<RequireAuth><AllPages /></RequireAuth>} />
           <Route path="*" element={<NotFound />} />

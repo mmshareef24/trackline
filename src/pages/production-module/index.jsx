@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Header from '../../components/ui/Header';
 import Sidebar from '../../components/ui/Sidebar';
 import { useSidebar } from '../../contexts/SidebarContext';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
 import Select from '../../components/ui/Select';
+import { getModuleKpis } from '../../utils/kpiConfig';
+import { formatValue, formatTrend, trendClass, formatDelta, deltaClass } from '../../utils/kpiFormat';
 
 const ProductionModule = () => {
   const { isCollapsed } = useSidebar();
@@ -30,12 +32,30 @@ const ProductionModule = () => {
     { value: 'Last 30d', label: 'Last 30d' }
   ];
 
-  const kpis = [
+  const defaultKpis = [
     { label: 'OEE', value: '84%', icon: 'Gauge', trend: 2 },
     { label: 'Throughput', value: '1,240 units', icon: 'Activity', trend: 5 },
     { label: 'Downtime', value: '1.8h', icon: 'Timer', trend: -1 },
     { label: 'Defect Rate', value: '0.7%', icon: 'AlertTriangle', trend: -2 }
   ];
+  const kpis = getModuleKpis('production', defaultKpis);
+
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [showTopOnly, setShowTopOnly] = useState(true);
+
+  const categories = useMemo(() => {
+    const set = new Set();
+    kpis?.forEach(k => set.add(k.category || 'General'));
+    return ['All', ...Array.from(set)];
+  }, [kpis]);
+
+  const displayKpis = useMemo(() => {
+    const filtered = selectedCategory === 'All' ? (kpis || []) : (kpis || []).filter(k => (k.category || 'General') === selectedCategory);
+    const pinned = filtered.filter(k => k.pinned);
+    const others = filtered.filter(k => !k.pinned).sort((a, b) => (b.priority || 0) - (a.priority || 0));
+    const ordered = [...pinned, ...others];
+    return showTopOnly ? ordered.slice(0, 8) : ordered;
+  }, [kpis, selectedCategory, showTopOnly]);
 
   const lines = [
     { name: 'Line 1', status: 'running', utilization: 89, orders: 12 },
@@ -78,24 +98,62 @@ const ProductionModule = () => {
               <Select options={factoryOptions} value={factory} onChange={setFactory} placeholder="Select factory" />
               <Select options={lineOptions} value={line} onChange={setLine} placeholder="Select line" />
               <Select options={timeframeOptions} value={timeframe} onChange={setTimeframe} placeholder="Timeframe" />
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-muted-foreground">Category</label>
+                <select
+                  className="bg-card border border-border rounded px-2 py-1 text-sm"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  {categories.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+                <label className="flex items-center gap-1 text-sm text-muted-foreground ml-2">
+                  <input
+                    type="checkbox"
+                    checked={showTopOnly}
+                    onChange={(e) => setShowTopOnly(e.target.checked)}
+                  />
+                  Top 8
+                </label>
+              </div>
+              {/* Quick category chips */}
+              <div className="flex flex-wrap gap-2 mt-2">
+                {categories.map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => setSelectedCategory(c)}
+                    className={`text-xs px-2 py-1 rounded border ${selectedCategory === c ? 'border-primary text-primary bg-primary/10' : 'border-border text-muted-foreground'}`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
               <Button variant="outline" icon={<Icon name="Download" />} iconPosition="left">Export</Button>
             </div>
           </div>
 
           {/* KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {kpis?.map((kpi, idx) => (
+            {displayKpis?.map((kpi, idx) => (
               <div key={idx} className="bg-card border border-border rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <Icon name={kpi?.icon} size={18} className="text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">{kpi?.label}</span>
                   </div>
-                  <span className={`text-xs px-2 py-0.5 rounded border ${kpi?.trend >= 0 ? 'border-success text-success' : 'border-error text-error'}`}>
-                    {kpi?.trend >= 0 ? `+${kpi?.trend}%` : `${kpi?.trend}%`}
+                  <span className={`text-xs px-2 py-0.5 rounded border ${trendClass(kpi?.trend)}`}>
+                    {formatTrend(kpi?.trend)}
                   </span>
                 </div>
-                <div className="text-xl font-semibold text-foreground">{kpi?.value}</div>
+                <div className="text-xl font-semibold text-foreground">{formatValue(kpi?.value, kpi?.unit)}</div>
+                {kpi?.target !== undefined && kpi?.target !== null && (
+                  <div className="mt-1 text-xs text-muted-foreground">Target: {formatValue(kpi?.target, kpi?.unit)}</div>
+                )}
+                {typeof kpi?.value === 'number' && typeof kpi?.target === 'number' && (
+                  <div className={`mt-0.5 text-xs ${deltaClass(kpi?.value - kpi?.target)}`}>Δ {formatDelta(kpi?.value - kpi?.target, kpi?.unit)}</div>
+                )}
               </div>
             ))}
           </div>
