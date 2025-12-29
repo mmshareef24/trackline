@@ -7,6 +7,7 @@ import Button from '../../components/ui/Button';
 import Select from '../../components/ui/Select';
 import { getModuleKpis } from '../../utils/kpiConfig';
 import { formatValue, formatTrend, trendClass, formatDelta, deltaClass } from '../../utils/kpiFormat';
+import ModuleObjectives from '../../components/ModuleObjectives';
 
 const ProjectModule = () => {
   const { isCollapsed } = useSidebar();
@@ -147,6 +148,9 @@ const ProjectModule = () => {
               </div>
             ))}
           </div>
+
+          {/* Module Objectives */}
+          <ModuleObjectives moduleKey="project" moduleLabel="Project" />
 
           <div className="bg-card border border-border rounded-lg overflow-hidden">
             <div className="p-4 border-b border-border flex items-center justify-between">
