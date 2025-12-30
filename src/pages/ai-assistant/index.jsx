@@ -30,18 +30,44 @@ const AIAssistant = () => {
     setQuestion('');
     setBusy(true);
     try {
-      const res = await fetch('/api/chat', {
+      const apiBase = import.meta?.env?.VITE_API_BASE_URL || '';
+      const res = await fetch(`${apiBase}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: newMessages, question: q }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data?.error || 'Failed to get answer');
+      const contentType = res.headers?.get('content-type') || '';
+      let data = null;
+      if (contentType.includes('application/json')) {
+        try {
+          data = await res.json();
+        } catch (parseErr) {
+          throw new Error('Response was not valid JSON.');
+        }
+      } else {
+        const text = await res.text();
+        if (text) {
+          try {
+            data = JSON.parse(text);
+          } catch {
+            data = { error: text };
+          }
+        }
       }
-      setMessages([...newMessages, { role: 'assistant', content: data?.answer || 'No answer returned.' }]);
+
+      if (!res.ok) {
+        const statusMsg = `Request failed (${res.status} ${res.statusText || ''})`.trim();
+        throw new Error(data?.error || statusMsg);
+      }
+
+      const answer = data?.answer;
+      if (!answer) {
+        throw new Error('Empty response from AI service.');
+      }
+      setMessages([...newMessages, { role: 'assistant', content: answer }]);
     } catch (err) {
-      setError(err?.message || 'Something went wrong');
+      const msg = err?.message || 'Something went wrong';
+      setError(msg);
     } finally {
       setBusy(false);
     }
@@ -83,7 +109,16 @@ const AIAssistant = () => {
             </Button>
           </form>
           {error && (
-            <div className="mt-2 text-sm text-destructive">{error}</div>
+            <div className="mt-2 text-sm text-destructive">
+              {error}
+              <div className="mt-1 text-xs text-muted-foreground">
+                Troubleshooting:
+                <br />
+                - If developing locally, start API functions with <code>vercel dev</code> or point <code>VITE_API_BASE_URL</code> to your deployed API.
+                <br />
+                - Ensure <code>OPENAI_API_KEY</code> is configured on the server.
+              </div>
+            </div>
           )}
           {!error && (
             <div className="mt-2 text-xs text-muted-foreground">
