@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Header from '../../components/ui/Header';
 import Sidebar from '../../components/ui/Sidebar';
 import { useSidebar } from '../../contexts/SidebarContext';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
 import Select from '../../components/ui/Select';
+import { getModuleKpis } from '../../utils/kpiConfig';
 
 const PerspectiveCard = ({ title, icon, kpis = [] }) => (
   <div className="bg-card border border-border rounded-lg shadow-sm p-4">
@@ -37,28 +38,93 @@ const BalancedScorecard = () => {
     { value: 'Q4 2025', label: 'Q4 2025' }
   ];
 
-  const data = {
-    financial: [
-      { label: 'Revenue Growth', value: '12%', trend: 2 },
-      { label: 'Gross Margin', value: '48%', trend: 1 },
-      { label: 'Operating Income', value: 'SAR 2.4M', trend: -3 },
-    ],
-    customer: [
-      { label: 'NPS', value: '62', trend: 4 },
-      { label: 'Customer Retention', value: '88%', trend: 1 },
-      { label: 'New Logos', value: '34', trend: 10 },
-    ],
-    internal: [
-      { label: 'Cycle Time', value: '7.2d', trend: -8 },
-      { label: 'Defect Rate', value: '0.9%', trend: -2 },
-      { label: 'Deploy Frequency', value: '24/wk', trend: 6 },
-    ],
-    learning: [
-      { label: 'Training Hours', value: '480h', trend: 12 },
-      { label: 'Skill Certifications', value: '26', trend: 8 },
-      { label: 'Engagement Score', value: '78', trend: 3 },
-    ],
-  };
+  // Build Balanced Scorecard data dynamically from module KPIs
+  const data = useMemo(() => {
+    const moduleKeys = ['finance', 'sales', 'production', 'project', 'executive'];
+
+    const allKpis = moduleKeys.flatMap((mk) => {
+      const list = getModuleKpis(mk, []);
+      return (Array.isArray(list) ? list : []).map((k) => ({ ...k, _module: mk }));
+    });
+
+    const includesAny = (text, patterns) => {
+      const t = (text || '').toLowerCase();
+      return patterns.some((p) => t.includes(p.toLowerCase()));
+    };
+
+    const mapToPerspective = (kpi) => {
+      const moduleKey = kpi._module;
+      const category = kpi.category || '';
+      const label = kpi.label || '';
+
+      // Financial
+      if (
+        moduleKey === 'finance' ||
+        includesAny(category, ['financial', 'revenue', 'margin', 'cash flow', 'pricing', 'compliance']) ||
+        includesAny(label, ['revenue', 'margin', 'profit', 'income'])
+      ) {
+        return 'financial';
+      }
+
+      // Customer
+      if (
+        moduleKey === 'sales' ||
+        includesAny(category, ['customer', 'order', 'sales']) ||
+        includesAny(label, ['customer', 'nps', 'retention', 'on-time delivery', 'fill rate', 'order'])
+      ) {
+        return 'customer';
+      }
+
+      // Learning & Growth
+      if (includesAny(label, ['training', 'skill', 'engagement', 'certification'])) {
+        return 'learning';
+      }
+
+      // Internal Processes (default for operational metrics)
+      if (
+        moduleKey === 'production' ||
+        moduleKey === 'project' ||
+        includesAny(category, ['production', 'quality', 'schedule', 'cost', 'operations']) ||
+        includesAny(label, ['cycle time', 'defect', 'downtime', 'throughput', 'deploy'])
+      ) {
+        return 'internal';
+      }
+
+      return 'internal';
+    };
+
+    const grouped = {
+      financial: [],
+      customer: [],
+      internal: [],
+      learning: [],
+    };
+
+    allKpis.forEach((k) => {
+      const perspective = mapToPerspective(k);
+      grouped[perspective].push({
+        label: k.label,
+        value: k.value ?? '—',
+        trend: k.trend,
+        pinned: k.pinned ? 1 : 0,
+        priority: typeof k.priority === 'number' ? k.priority : 0,
+      });
+    });
+
+    const sortByImportance = (a, b) => {
+      if (b.pinned !== a.pinned) return b.pinned - a.pinned;
+      return (b.priority || 0) - (a.priority || 0);
+    };
+
+    const pickTop = (arr, n = 6) => arr.sort(sortByImportance).slice(0, n);
+
+    return {
+      financial: pickTop(grouped.financial, 6),
+      customer: pickTop(grouped.customer, 6),
+      internal: pickTop(grouped.internal, 6),
+      learning: pickTop(grouped.learning, 6),
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
