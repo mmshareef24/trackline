@@ -65,6 +65,12 @@ const Sidebar = () => {
           path: '/balanced-scorecard',
           icon: 'PieChart',
           description: 'Balance Scorecard overview'
+        },
+        {
+          label: 'AI Assistant',
+          path: '/ai-assistant',
+          icon: 'MessageSquare',
+          description: 'Ask questions and get guidance'
         }
       ]
     },
@@ -117,6 +123,18 @@ const Sidebar = () => {
           path: '/all-pages',
           icon: 'Grid2x2',
           description: 'Index of all application pages'
+        },
+        {
+          label: 'Knowledge Base',
+          path: '/knowledge-base',
+          icon: 'Book',
+          description: 'Guides and how-tos'
+        },
+        {
+          label: 'Training Guide',
+          path: '/training-guide',
+          icon: 'GraduationCap',
+          description: 'Quick steps to get started'
         }
       ]
     },
