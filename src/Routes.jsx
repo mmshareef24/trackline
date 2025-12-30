@@ -24,6 +24,9 @@ import FinanceModule from './pages/finance-module';
 import SalesModule from './pages/sales-module';
 import SupplyChainModule from './pages/supply-chain-module';
 import ExecutiveDashboard from './pages/executive-dashboard';
+import AIAssistant from './pages/ai-assistant';
+import KnowledgeBase from './pages/knowledge-base';
+import TrainingGuide from './pages/training-guide';
 
 const Routes = () => {
   const RequireAuth = ({ children }) => {
@@ -61,6 +64,9 @@ const Routes = () => {
           <Route path="/company-okr-dashboard" element={<RequireAuth><CompanyOKRDashboard /></RequireAuth>} />
           <Route path="/balanced-scorecard" element={<RequireAuth><BalancedScorecard /></RequireAuth>} />
           <Route path="/executive-dashboard" element={<RequireAuth><ExecutiveDashboard /></RequireAuth>} />
+          <Route path="/ai-assistant" element={<RequireAuth><AIAssistant /></RequireAuth>} />
+          <Route path="/knowledge-base" element={<RequireAuth><KnowledgeBase /></RequireAuth>} />
+          <Route path="/training-guide" element={<RequireAuth><TrainingGuide /></RequireAuth>} />
           <Route path="/production-module" element={<RequireAuth><ProductionModule /></RequireAuth>} />
           <Route path="/project-module" element={<RequireAuth><ProjectModule /></RequireAuth>} />
           <Route path="/finance-module" element={<RequireAuth><FinanceModule /></RequireAuth>} />
