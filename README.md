@@ -186,6 +186,7 @@ npm run build
   - `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` for frontend.
   - `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` for serverless functions (if used).
   - `VITE_SITE_URL` set to your production domain (e.g., `https://<owner>.github.io/trackline`).
+  - `OPENAI_API_KEY` for the AI Assistant chat endpoint (`/api/chat`).
   - Add secrets in GitHub → Settings → Secrets and variables → Actions for CI builds.
 - Clean demo data in Supabase (keep `organizations` = 'Default Org')
   - Open Supabase → SQL Editor → New Query → paste `db/cleanup_demo.sql` → Run.
@@ -198,6 +199,25 @@ npm run build
   - Admin API endpoint with preserve option:
     - Deploy `api/cleanupDemo.js` with `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` set.
     - Call `POST /api/cleanupDemo` with body `{ "orgName": "Default Org", "preservePeople": true }` and an `Authorization: Bearer <supabase-jwt>` of an admin in the org.
+
+## 🤖 AI Assistant
+
+- Endpoint: `POST /api/chat`
+  - Body: `{ messages: Array<{ role, content }>, question: string }`
+  - Returns: `{ answer: string }`
+
+- Setup:
+  - Set `OPENAI_API_KEY` in your deployment environment (e.g., Vercel → Project → Settings → Environment Variables).
+  - Local dev: requests will hit the dev serverless runtime; ensure env is available if testing production behavior.
+
+- UI Pages:
+  - `AI Assistant`: `/ai-assistant` — chat UI for Q&A.
+  - `Knowledge Base`: `/knowledge-base` — searchable articles.
+  - `Training Guide`: `/training-guide` — step-by-step onboarding.
+
+- Notes:
+  - The assistant focuses on navigation, KPIs, Balanced Scorecard usage, and module drill-downs.
+  - For richer, data-grounded answers, consider adding retrieval (RAG) against internal docs.
     - Response includes counts; users/teams/departments are left intact when `preservePeople` is true.
 - Verify Auth configuration
   - Enable Google provider and set Client ID/Secret.
