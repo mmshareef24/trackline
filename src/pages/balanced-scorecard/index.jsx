@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Header from '../../components/ui/Header';
 import Sidebar from '../../components/ui/Sidebar';
 import { useSidebar } from '../../contexts/SidebarContext';
@@ -21,6 +22,16 @@ const PerspectiveCard = ({ title, icon, kpis = [] }) => (
           {kpi?.trend && (
             <div className={`text-xs mt-1 ${kpi?.trend > 0 ? 'text-success' : kpi?.trend < 0 ? 'text-error' : 'text-muted-foreground'}`}>{kpi?.trend > 0 ? `+${kpi?.trend}%` : `${kpi?.trend}%`} vs last period</div>
           )}
+          <div className="mt-2 flex items-center justify-between">
+            {typeof kpi?.target !== 'undefined' && (
+              <div className="text-xs text-muted-foreground">Target: {kpi?.target}</div>
+            )}
+            {kpi?.route && (
+              <Link to={kpi.route} className="text-xs text-primary hover:underline flex items-center gap-1">
+                <Icon name="ExternalLink" size={12} /> Open
+              </Link>
+            )}
+          </div>
         </div>
       ))}
     </div>
@@ -40,7 +51,7 @@ const BalancedScorecard = () => {
 
   // Build Balanced Scorecard data dynamically from module KPIs
   const data = useMemo(() => {
-    const moduleKeys = ['finance', 'sales', 'production', 'project', 'executive'];
+    const moduleKeys = ['finance', 'sales', 'supplyChain', 'production', 'project', 'executive'];
 
     const allKpis = moduleKeys.flatMap((mk) => {
       const list = getModuleKpis(mk, []);
@@ -75,6 +86,15 @@ const BalancedScorecard = () => {
         return 'customer';
       }
 
+      // Supply Chain
+      if (
+        moduleKey === 'supplyChain' ||
+        includesAny(category, ['procurement', 'inventory', 'production & logistics', 'planning & reliability']) ||
+        includesAny(label, ['inventory', 'supplier', 'logistics', 'freight', 'yield'])
+      ) {
+        return 'supplyChain';
+      }
+
       // Learning & Growth
       if (includesAny(label, ['training', 'skill', 'engagement', 'certification'])) {
         return 'learning';
@@ -96,18 +116,30 @@ const BalancedScorecard = () => {
     const grouped = {
       financial: [],
       customer: [],
+      supplyChain: [],
       internal: [],
       learning: [],
     };
 
     allKpis.forEach((k) => {
       const perspective = mapToPerspective(k);
+      const moduleRouteMap = {
+        finance: '/finance-module',
+        sales: '/sales-module',
+        supplyChain: '/supply-chain-module',
+        production: '/production-module',
+        project: '/project-module',
+        executive: '/executive-dashboard',
+      };
       grouped[perspective].push({
         label: k.label,
         value: k.value ?? '—',
         trend: k.trend,
         pinned: k.pinned ? 1 : 0,
         priority: typeof k.priority === 'number' ? k.priority : 0,
+        target: k.target,
+        route: moduleRouteMap[k._module],
+        module: k._module,
       });
     });
 
@@ -121,6 +153,7 @@ const BalancedScorecard = () => {
     return {
       financial: pickTop(grouped.financial, 6),
       customer: pickTop(grouped.customer, 6),
+      supplyChain: pickTop(grouped.supplyChain, 6),
       internal: pickTop(grouped.internal, 6),
       learning: pickTop(grouped.learning, 6),
     };
@@ -144,13 +177,61 @@ const BalancedScorecard = () => {
                 onChange={(val) => setQuarter(val)}
                 placeholder="Select quarter"
               />
-              <Button variant="outline" icon={<Icon name="Download" />} iconPosition="left">Export</Button>
+              <Button
+                variant="outline"
+                icon={<Icon name="Download" />}
+                iconPosition="left"
+                onClick={() => {
+                  const rows = [];
+                  const pushRows = (perspectiveKey, items) => {
+                    items.forEach((it) => {
+                      rows.push({
+                        perspective: perspectiveKey,
+                        label: it.label,
+                        value: it.value,
+                        trend: typeof it.trend !== 'undefined' ? it.trend : '',
+                        target: typeof it.target !== 'undefined' ? it.target : '',
+                        module: it.module || '',
+                      });
+                    });
+                  };
+                  pushRows('Financial', data.financial || []);
+                  pushRows('Customer', data.customer || []);
+                  pushRows('Supply Chain', data.supplyChain || []);
+                  pushRows('Internal', data.internal || []);
+                  pushRows('Learning', data.learning || []);
+
+                  const headers = ['Perspective','Label','Value','Trend','Target','Module'];
+                  const escape = (val) => {
+                    const s = String(val ?? '');
+                    if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+                      return '"' + s.replace(/"/g, '""') + '"';
+                    }
+                    return s;
+                  };
+                  const csv = [headers.join(',')]
+                    .concat(rows.map(r => headers.map(h => escape(r[h.toLowerCase()])).join(',')))
+                    .join('\n');
+                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `balanced_scorecard_export_${Date.now()}.csv`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                }}
+              >
+                Export
+              </Button>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <PerspectiveCard title="Financial" icon="DollarSign" kpis={data.financial} />
             <PerspectiveCard title="Customer" icon="Users" kpis={data.customer} />
+            <PerspectiveCard title="Supply Chain" icon="Truck" kpis={data.supplyChain} />
             <PerspectiveCard title="Internal Processes" icon="Workflow" kpis={data.internal} />
             <PerspectiveCard title="Learning & Growth" icon="GraduationCap" kpis={data.learning} />
           </div>
