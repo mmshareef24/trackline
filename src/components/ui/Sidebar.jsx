@@ -351,14 +351,14 @@ const Sidebar = () => {
         <nav className="flex items-center justify-around py-2">
           {[
             { label: 'Dashboard', path: '/company-okr-dashboard', icon: 'LayoutDashboard' },
-            { label: 'Check-ins', path: '/team-check-ins-and-collaboration', icon: 'Users' },
-            { label: 'Timeline', path: '/timeline-and-milestone-management', icon: 'Calendar' },
+            { label: 'AI', path: '/ai-assistant', icon: 'MessageSquare' },
             { label: 'Analytics', path: '/analytics-and-reporting-dashboard', icon: 'BarChart3' },
-            { label: 'More', path: '/more', icon: 'MoreHorizontal' }
+            { label: 'Knowledge', path: '/knowledge-base', icon: 'Book' },
+            { label: 'Training', path: '/training-guide', icon: 'GraduationCap' }
           ]?.map((item, index) => (
             <button
               key={index}
-              onClick={() => handleNavigation(item?.path === '/more' ? '/all-pages' : item?.path)}
+              onClick={() => handleNavigation(item?.path)}
               className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-lg transition-colors ${
                 isActiveRoute(item?.path)
                   ? 'text-primary' :'text-muted-foreground hover:text-foreground'
