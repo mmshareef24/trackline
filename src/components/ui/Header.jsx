@@ -57,8 +57,27 @@ const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border">
       <div className="flex items-center justify-between h-16 px-6">
-        {/* Logo */}
-        <div className="flex items-center">
+        {/* Left: Back + Logo */}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            iconName="ArrowLeft"
+            iconPosition="left"
+            onClick={() => navigate(-1)}
+            className="hidden sm:flex"
+          >
+            Back
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="sm:hidden"
+            aria-label="Go Back"
+          >
+            <Icon name="ArrowLeft" size={18} />
+          </Button>
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <Icon name="Target" size={20} color="white" strokeWidth={2.5} />
