@@ -26,8 +26,30 @@ const ObjectiveCreationAndManagement = () => {
       setIsLoading(true);
       try {
         // Fetch organization (defaulting to the first one found if not authenticated user-org context)
-        const { data: orgs } = await supabase.from('organizations').select('id').limit(1);
-        const organizationId = orgs?.[0]?.id;
+        let { data: orgs, error: orgError } = await supabase.from('organizations').select('id').limit(1);
+        
+        if (orgError) {
+          console.error('Error fetching org:', orgError);
+        }
+
+        let organizationId = orgs?.[0]?.id;
+
+        // If no org exists, try to create one (fallback)
+        if (!organizationId) {
+          console.log('No organization found, attempting to create Default Org...');
+          const { data: newOrg, error: createError } = await supabase
+            .from('organizations')
+            .insert({ name: 'Default Org' })
+            .select()
+            .single();
+            
+          if (createError) {
+             console.error('Error creating default org:', createError);
+          } else {
+             organizationId = newOrg?.id;
+          }
+        }
+
         setOrgId(organizationId);
 
         if (organizationId) {
@@ -60,6 +82,7 @@ const ObjectiveCreationAndManagement = () => {
         }
       } catch (error) {
         console.error('Error loading objectives:', error);
+        // Don't alert on load error to avoid spamming, just log
       } finally {
         setIsLoading(false);
       }
@@ -90,6 +113,7 @@ const ObjectiveCreationAndManagement = () => {
   const handleSaveObjective = async (objectiveData) => {
     if (!orgId) {
       console.error('No organization ID found');
+      alert('System Error: No Organization ID found. Please refresh the page or contact support.');
       return;
     }
 
