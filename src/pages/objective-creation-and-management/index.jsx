@@ -70,6 +70,10 @@ const ObjectiveCreationAndManagement = () => {
             ...obj,
             owner: obj.owner_name,
             team: obj.team_name,
+            quarter: obj.quarter_name || obj.quarter, // Fallback
+            status: obj.status === 'not_started' ? 'draft' : 
+                   obj.status === 'in_progress' ? 'active' : 
+                   obj.status,
             keyResults: obj.keyResults?.map(kr => ({
               ...kr,
               currentValue: kr.current,
@@ -120,16 +124,22 @@ const ObjectiveCreationAndManagement = () => {
     try {
       const { keyResults, ...objData } = objectiveData;
       
+      // Map status from frontend to backend enum
+      let dbStatus = 'not_started';
+      if (objData.status === 'active') dbStatus = 'in_progress';
+      else if (objData.status === 'draft') dbStatus = 'not_started';
+      else if (objData.status) dbStatus = objData.status;
+
       const dbObjectiveData = {
         title: objData.title,
         description: objData.description,
-        status: objData.status || 'not_started',
+        status: dbStatus,
         priority: objData.priority,
         organization_id: orgId,
         category: objData.category,
         owner_name: objData.owner,
         team_name: objData.team,
-        // Map other fields as needed
+        quarter_name: objData.quarter,
         updated_at: new Date().toISOString()
       };
 
