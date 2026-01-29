@@ -10,15 +10,6 @@ import { supabase } from '../utils/supabaseClient';
 
 const Login = () => {
   const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
-  const supabaseUrlEnv = import.meta.env.VITE_SUPABASE_URL || '';
-  const supabaseProjectRef = (() => {
-    try {
-      const m = supabaseUrlEnv.match(/https?:\/\/([^.]+)\.supabase\.co/i);
-      return m ? m[1] : '';
-    } catch {
-      return '';
-    }
-  })();
   const { isCollapsed } = useSidebar();
   const { login, user, loading } = useAuth();
   const navigate = useNavigate();
@@ -28,9 +19,7 @@ const Login = () => {
   const [notice, setNotice] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [mode, setMode] = useState('password'); // 'password' | 'magic' | 'signup'
-  const [oauthLoading, setOauthLoading] = useState(''); // '', 'google', 'github'
-  const [checkLoading, setCheckLoading] = useState(false);
-  const [checkResult, setCheckResult] = useState('');
+  const [oauthLoading, setOauthLoading] = useState(''); // '', 'google'
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -113,36 +102,6 @@ const Login = () => {
       setNotice('Password reset email sent. Check your inbox.');
     } catch (err) {
       setError(err?.message || 'Failed to send password reset email.');
-    }
-  };
-
-  const handleCheckSupabase = async () => {
-    setCheckResult('');
-    setCheckLoading(true);
-    try {
-      if (!supabase) {
-        setCheckResult('Supabase not configured (missing env vars).');
-        return;
-      }
-      // Lightweight connectivity check; RLS may block anonymous reads which is fine
-      const { error } = await supabase
-        .from('organizations')
-        .select('id', { head: true })
-        .limit(1);
-      if (error) {
-        const msg = error.message || String(error);
-        if (/permission|JWT|auth|not authorized/i.test(msg)) {
-          setCheckResult('Connected: yes (RLS blocks anonymous reads, expected before login).');
-        } else {
-          setCheckResult(`Connected: no (${msg})`);
-        }
-      } else {
-        setCheckResult('Connected: yes');
-      }
-    } catch (err) {
-      setCheckResult(`Connected: no (${err?.message || 'unknown error'})`);
-    } finally {
-      setCheckLoading(false);
     }
   };
 
@@ -263,46 +222,19 @@ const Login = () => {
               <span>Or continue with</span>
               <span className="flex-1 h-px bg-muted" />
             </div>
-            {/* Auth configuration hint for troubleshooting */}
-            <div className="mt-2 text-xs text-muted-foreground">
-              <span>Auth ref: {supabaseProjectRef || 'not configured'} • Redirect origin: {siteUrl}</span>
-            </div>
-            {/* Lightweight connectivity check */}
-            <div className="mt-2 text-xs">
-              <Button
-                type="button"
-                variant="secondary"
-                loading={checkLoading}
-                onClick={handleCheckSupabase}
-                icon={<Icon name="Link" />}
-              >
-                Check connectivity
-              </Button>
-              {checkResult && (
-                <div className="mt-2 text-muted-foreground">{checkResult}</div>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-2">
+            
+            <div className="grid grid-cols-1 gap-2">
               <Button
                 type="button"
                 variant="secondary"
                 icon={<Icon name="Chrome" />}
                 loading={oauthLoading === 'google'}
                 onClick={() => handleOAuth('google')}
+                className="w-full"
               >
-                Google
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                icon={<Icon name="Github" />}
-                loading={oauthLoading === 'github'}
-                onClick={() => handleOAuth('github')}
-              >
-                GitHub
+                Continue with Google
               </Button>
             </div>
-            {/* Production: removed debug and connectivity checks */}
           </div>
         </div>
       </main>

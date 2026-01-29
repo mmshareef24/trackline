@@ -355,9 +355,22 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
           {currentStep === 2 && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-foreground mb-2">Key Results</h3>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-lg font-medium text-foreground">Key Results (KPIs)</h3>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={generateKPIs}
+                    loading={isGenerating}
+                    iconName="Sparkles"
+                    disabled={!formData.title}
+                    title={!formData.title ? "Enter an objective title first" : "Generate suggested KPIs with AI"}
+                  >
+                    Generate with AI
+                  </Button>
+                </div>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Define measurable outcomes that indicate success for this objective.
+                  Define measurable outcomes that indicate success for this objective. You can add them manually or generate suggestions.
                 </p>
               </div>
 
