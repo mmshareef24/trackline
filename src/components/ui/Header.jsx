@@ -14,6 +14,7 @@ const Header = () => {
   const { toggleMobile } = useSidebar();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const defaultDisplayName = import.meta.env.VITE_DEFAULT_USER_NAME || 'Guest';
   const [notifications] = useState([
     { id: 1, title: 'Weekly check-in reminder', message: 'Q4 objectives review due today', time: '2 hours ago', unread: true },
     { id: 2, title: 'Progress update', message: 'Marketing team completed KR milestone', time: '4 hours ago', unread: true },
@@ -210,7 +211,7 @@ const Header = () => {
               ) : (
                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                   <span className="text-sm font-medium text-primary-foreground">
-                    {(user?.name || 'Guest')
+                    {(user?.name || defaultDisplayName)
                       .split(' ')
                       .map((n) => n[0])
                       .slice(0, 2)
@@ -220,7 +221,7 @@ const Header = () => {
                 </div>
               )}
               <div className="hidden md:flex flex-col items-start">
-                <span className="text-sm font-medium text-foreground">{user?.name || 'Guest'}</span>
+                <span className="text-sm font-medium text-foreground">{user?.name || defaultDisplayName}</span>
                 <span className="text-xs text-muted-foreground">{user?.email || 'Not signed in'}</span>
               </div>
               <Icon name="ChevronDown" size={16} className="text-muted-foreground" />
@@ -230,7 +231,7 @@ const Header = () => {
             {isProfileOpen && (
               <div className="absolute right-0 top-full mt-2 w-56 bg-popover border border-border rounded-lg shadow-lg z-50">
                 <div className="p-3 border-b border-border">
-                  <p className="font-medium text-foreground">{user?.name || 'Guest'}</p>
+                  <p className="font-medium text-foreground">{user?.name || defaultDisplayName}</p>
                   <p className="text-sm text-muted-foreground">{user?.email || 'Not signed in'}</p>
                   {user?.role && (
                     <p className="text-xs text-muted-foreground mt-1">{user?.role}</p>
