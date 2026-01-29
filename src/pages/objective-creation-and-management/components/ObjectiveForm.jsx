@@ -29,6 +29,7 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const steps = [
     { id: 1, title: 'Basic Details', icon: 'FileText' },
@@ -149,6 +150,36 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
 
   const handlePrevious = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const generateKPIs = async () => {
+    setIsGenerating(true);
+    try {
+      const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
+      const response = await fetch(`${siteUrl}/api/generate-kpis`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description,
+          category: formData.category
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.keyResults) {
+          setFormData(prev => ({
+            ...prev,
+            keyResults: [...prev.keyResults, ...data.keyResults]
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error generating KPIs:', error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleSubmit = async () => {
