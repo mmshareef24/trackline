@@ -106,7 +106,7 @@ const ObjectiveDetails = ({ objective, onEdit, onClose }) => {
               <div className="w-full bg-muted rounded-full h-2">
                 <div
                   className="bg-primary h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${objective?.progress}%` }}
+                  style={{ width: `${Math.max(0, Math.min(100, objective?.progress || 0))}%` }}
                 ></div>
               </div>
             </div>
@@ -271,7 +271,7 @@ const ObjectiveDetails = ({ objective, onEdit, onClose }) => {
                     <div className="w-full bg-muted rounded-full h-2 mb-3">
                       <div
                         className="bg-primary h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${kr?.progress}%` }}
+                        style={{ width: `${Math.max(0, Math.min(100, kr?.progress || 0))}%` }}
                       ></div>
                     </div>
 

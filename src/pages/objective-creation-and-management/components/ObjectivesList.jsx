@@ -17,7 +17,12 @@ const ObjectivesList = ({ objectives, onSelectObjective, selectedObjectiveId, on
   const sortedObjectives = [...filteredObjectives]?.sort((a, b) => {
     switch (sortBy) {
       case 'recent':
-        return new Date(b.updatedAt) - new Date(a.updatedAt);
+        const dateA = new Date(a.updatedAt);
+        const dateB = new Date(b.updatedAt);
+        // Handle invalid dates (like "2 days ago" in mock data) by treating them as 0
+        const valA = isNaN(dateA.getTime()) ? 0 : dateA.getTime();
+        const valB = isNaN(dateB.getTime()) ? 0 : dateB.getTime();
+        return valB - valA;
       case 'progress':
         return b?.progress - a?.progress;
       case 'priority':

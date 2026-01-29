@@ -168,10 +168,11 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
 
       if (response.ok) {
         const data = await response.json();
-        if (data.keyResults) {
+        const kpis = data.kpis || data.keyResults || [];
+        if (kpis.length > 0) {
           setFormData(prev => ({
             ...prev,
-            keyResults: [...prev.keyResults, ...data.keyResults]
+            keyResults: [...prev.keyResults, ...kpis]
           }));
         }
       }

@@ -280,18 +280,18 @@ const ObjectiveCreationAndManagement = () => {
         id: Date.now(),
         progress: 0,
         status: 'draft',
-        createdAt: new Date()?.toISOString()?.split('T')?.[0],
-        updatedAt: 'just now'
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
       setObjectives(prev => [newObjective, ...prev]);
       setSelectedObjective(newObjective);
     } else {
       setObjectives(prev => prev?.map(obj => 
         obj?.id === selectedObjective?.id 
-          ? { ...obj, ...objectiveData, updatedAt: 'just now' }
+          ? { ...obj, ...objectiveData, updatedAt: new Date().toISOString() }
           : obj
       ));
-      setSelectedObjective(prev => ({ ...prev, ...objectiveData, updatedAt: 'just now' }));
+      setSelectedObjective(prev => ({ ...prev, ...objectiveData, updatedAt: new Date().toISOString() }));
     }
     setIsFormOpen(false);
   };
