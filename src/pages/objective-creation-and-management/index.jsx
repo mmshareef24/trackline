@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Header from '../../components/ui/Header';
 import Sidebar from '../../components/ui/Sidebar';
 import { useSidebar } from '../../contexts/SidebarContext';
+import { supabase } from '../../utils/supabaseClient';
 
 import Button from '../../components/ui/Button';
 import ObjectivesList from './components/ObjectivesList';
@@ -18,240 +19,53 @@ const ObjectiveCreationAndManagement = () => {
   const [formMode, setFormMode] = useState('create');
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState('split'); // 'split', 'list', 'details'
-
-  // Mock data for objectives
-  const mockObjectives = [
-    {
-      id: 1,
-      title: "Increase Quarterly Revenue Growth",
-      description: "Drive significant revenue growth through strategic initiatives, market expansion, and customer acquisition to achieve sustainable business growth targets for Q1 2025.",
-      category: "Revenue Growth",
-      priority: "high",
-      status: "active",
-      progress: 75,
-      owner: "John Doe",
-      team: "Sales",
-      quarter: "Q1 2025",
-      updatedAt: "2 days ago",
-      createdAt: "2025-01-15",
-      tags: ["revenue", "growth", "q1-priority"],
-      keyResults: [
-        {
-          id: 101,
-          title: "Achieve SAR 2M in quarterly revenue",
-          metricType: "currency",
-          currentValue: 1500000,
-          targetValue: 2000000,
-          unit: "SAR",
-          progress: 75
-        },
-        {
-          id: 102,
-          title: "Increase conversion rate to 15%",
-          metricType: "percentage",
-          currentValue: 12,
-          targetValue: 15,
-          unit: "%",
-          progress: 80
-        },
-        {
-          id: 103,
-          title: "Acquire 500 new customers",
-          metricType: "number",
-          currentValue: 320,
-          targetValue: 500,
-          unit: " customers",
-          progress: 64
-        }
-      ]
-    },
-    {
-      id: 2,
-      title: "Launch New Product Feature Suite",
-      description: "Successfully develop, test, and launch comprehensive product features to enhance user experience and drive customer satisfaction metrics.",
-      category: "Product Development",
-      priority: "high",
-      status: "active",
-      progress: 45,
-      owner: "Sarah Johnson",
-      team: "Product",
-      quarter: "Q1 2025",
-      updatedAt: "1 day ago",
-      createdAt: "2025-01-10",
-      tags: ["product", "launch", "features"],
-      keyResults: [
-        {
-          id: 201,
-          title: "Complete feature development",
-          metricType: "percentage",
-          currentValue: 60,
-          targetValue: 100,
-          unit: "%",
-          progress: 60
-        },
-        {
-          id: 202,
-          title: "Achieve 80% user adoption",
-          metricType: "percentage",
-          currentValue: 25,
-          targetValue: 80,
-          unit: "%",
-          progress: 31
-        }
-      ]
-    },
-    {
-      id: 3,
-      title: "Improve Customer Success Metrics",
-      description: "Enhance customer satisfaction, reduce churn rate, and improve overall customer success indicators through strategic support initiatives.",
-      category: "Customer Success",
-      priority: "medium",
-      status: "active",
-      progress: 60,
-      owner: "Mike Chen",
-      team: "Customer Success",
-      quarter: "Q1 2025",
-      updatedAt: "3 hours ago",
-      createdAt: "2025-01-20",
-      tags: ["customer", "success", "retention"],
-      keyResults: [
-        {
-          id: 301,
-          title: "Reduce customer churn to 5%",
-          metricType: "percentage",
-          currentValue: 8,
-          targetValue: 5,
-          unit: "%",
-          progress: 60
-        },
-        {
-          id: 302,
-          title: "Increase NPS score to 70",
-          metricType: "number",
-          currentValue: 58,
-          targetValue: 70,
-          unit: " points",
-          progress: 67
-        }
-      ]
-    },
-    {
-      id: 4,
-      title: "Expand Market Presence",
-      description: "Strategic market expansion initiative to enter new geographical markets and establish strong brand presence in target regions.",
-      category: "Market Expansion",
-      priority: "medium",
-      status: "draft",
-      progress: 20,
-      owner: "Emily Davis",
-      team: "Marketing",
-      quarter: "Q2 2025",
-      updatedAt: "1 week ago",
-      createdAt: "2025-01-05",
-      tags: ["market", "expansion", "growth"],
-      keyResults: [
-        {
-          id: 401,
-          title: "Enter 3 new markets",
-          metricType: "number",
-          currentValue: 1,
-          targetValue: 3,
-          unit: " markets",
-          progress: 33
-        },
-        {
-          id: 402,
-          title: "Establish 10 partnerships",
-          metricType: "number",
-          currentValue: 2,
-          targetValue: 10,
-          unit: " partnerships",
-          progress: 20
-        }
-      ]
-    },
-    {
-      id: 5,
-      title: "Enhance Team Development",
-      description: "Focus on team growth, skill development, and employee satisfaction to build a high-performing organization culture.",
-      category: "Team Development",
-      priority: "low",
-      status: "completed",
-      progress: 100,
-      owner: "Alex Rodriguez",
-      team: "HR",
-      quarter: "Q4 2024",
-      updatedAt: "2 weeks ago",
-      createdAt: "2024-10-01",
-      tags: ["team", "development", "hr"],
-      keyResults: [
-        {
-          id: 501,
-          title: "Complete training for 100% of team",
-          metricType: "percentage",
-          currentValue: 100,
-          targetValue: 100,
-          unit: "%",
-          progress: 100
-        },
-        {
-          id: 502,
-          title: "Achieve 90% employee satisfaction",
-          metricType: "percentage",
-          currentValue: 92,
-          targetValue: 90,
-          unit: "%",
-          progress: 100
-        }
-      ]
-    },
-    {
-      id: 6,
-      title: "Optimize Operational Excellence",
-      description: "Streamline operations, improve efficiency metrics, and reduce operational costs while maintaining quality standards.",
-      category: "Operational Excellence",
-      priority: "medium",
-      status: "archived",
-      progress: 85,
-      owner: "Lisa Wang",
-      team: "Operations",
-      quarter: "Q3 2024",
-      updatedAt: "1 month ago",
-      createdAt: "2024-07-01",
-      tags: ["operations", "efficiency", "cost-reduction"],
-      keyResults: [
-        {
-          id: 601,
-          title: "Reduce operational costs by 15%",
-          metricType: "percentage",
-          currentValue: 12,
-          targetValue: 15,
-          unit: "%",
-          progress: 80
-        },
-        {
-          id: 602,
-          title: "Improve process efficiency by 25%",
-          metricType: "percentage",
-          currentValue: 22,
-          targetValue: 25,
-          unit: "%",
-          progress: 88
-        }
-      ]
-    }
-  ];
+  const [orgId, setOrgId] = useState(null);
 
   useEffect(() => {
-    // Simulate loading objectives
-    const loadObjectives = async () => {
+    const fetchOrgAndObjectives = async () => {
       setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setObjectives(mockObjectives);
-      setIsLoading(false);
+      try {
+        // Fetch organization (defaulting to the first one found if not authenticated user-org context)
+        const { data: orgs } = await supabase.from('organizations').select('id').limit(1);
+        const organizationId = orgs?.[0]?.id;
+        setOrgId(organizationId);
+
+        if (organizationId) {
+          // Fetch objectives
+          const { data: objs, error } = await supabase
+            .from('objectives')
+            .select(`
+              *,
+              keyResults:key_results(*)
+            `)
+            .eq('organization_id', organizationId)
+            .order('updated_at', { ascending: false });
+
+          if (error) throw error;
+          
+          // Map DB structure to frontend structure
+          const formattedObjectives = objs.map(obj => ({
+            ...obj,
+            owner: obj.owner_name,
+            team: obj.team_name,
+            keyResults: obj.keyResults?.map(kr => ({
+              ...kr,
+              currentValue: kr.current,
+              targetValue: kr.target,
+              metricType: kr.metric_type
+            })) || []
+          }));
+          
+          setObjectives(formattedObjectives);
+        }
+      } catch (error) {
+        console.error('Error loading objectives:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    loadObjectives();
+    fetchOrgAndObjectives();
   }, []);
 
   const handleSelectObjective = (objective) => {
@@ -273,26 +87,117 @@ const ObjectiveCreationAndManagement = () => {
     setIsFormOpen(true);
   };
 
-  const handleSaveObjective = (objectiveData) => {
-    if (formMode === 'create') {
-      const newObjective = {
-        ...objectiveData,
-        id: Date.now(),
-        progress: 0,
-        status: 'draft',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      setObjectives(prev => [newObjective, ...prev]);
-      setSelectedObjective(newObjective);
-    } else {
-      setObjectives(prev => prev?.map(obj => 
-        obj?.id === selectedObjective?.id 
-          ? { ...obj, ...objectiveData, updatedAt: new Date().toISOString() }
-          : obj
-      ));
-      setSelectedObjective(prev => ({ ...prev, ...objectiveData, updatedAt: new Date().toISOString() }));
+  const handleSaveObjective = async (objectiveData) => {
+    if (!orgId) {
+      console.error('No organization ID found');
+      return;
     }
+
+    try {
+      const { keyResults, ...objData } = objectiveData;
+      
+      const dbObjectiveData = {
+        title: objData.title,
+        description: objData.description,
+        status: objData.status || 'not_started',
+        priority: objData.priority,
+        organization_id: orgId,
+        category: objData.category,
+        owner_name: objData.owner,
+        team_name: objData.team,
+        // Map other fields as needed
+        updated_at: new Date().toISOString()
+      };
+
+      let savedObjective;
+
+      if (formMode === 'create') {
+        const { data, error } = await supabase
+          .from('objectives')
+          .insert({
+            ...dbObjectiveData,
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        savedObjective = data;
+        
+        // Optimistic update
+        setObjectives(prev => [{ ...savedObjective, keyResults: [] }, ...prev]);
+        setSelectedObjective({ ...savedObjective, keyResults: [] });
+
+      } else {
+        const { data, error } = await supabase
+          .from('objectives')
+          .update(dbObjectiveData)
+          .eq('id', selectedObjective.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        savedObjective = data;
+
+        setObjectives(prev => prev.map(obj => 
+          obj.id === savedObjective.id ? { ...savedObjective, keyResults: obj.keyResults } : obj
+        ));
+        setSelectedObjective(prev => ({ ...prev, ...savedObjective }));
+      }
+
+      // Handle Key Results
+      if (keyResults && keyResults.length > 0) {
+        // Prepare KRs for upsert
+        const krsToUpsert = keyResults.map(kr => ({
+          objective_id: savedObjective.id,
+          title: kr.title,
+          metric_type: kr.metricType,
+          target: kr.targetValue,
+          current: kr.currentValue,
+          unit: kr.unit,
+          progress: kr.progress,
+          status: kr.status || 'not_started',
+          priority: kr.priority || 'medium',
+          id: typeof kr.id === 'string' && kr.id.length > 10 ? kr.id : undefined // Only keep ID if it's a valid UUID (simple check)
+        }));
+
+        // Since upsert with undefined ID works for insert, but we have mixed numeric IDs from frontend mock
+        // We should separate inserts and updates or just insert new ones.
+        // For simplicity, let's delete existing KRs and insert new ones (easiest for full sync)
+        // OR better: iterate and insert/update.
+        
+        // Strategy: Delete all KRs for this objective and re-insert (simplest for this prototype phase)
+        await supabase.from('key_results').delete().eq('objective_id', savedObjective.id);
+        
+        const { data: savedKRs, error: krError } = await supabase
+          .from('key_results')
+          .insert(krsToUpsert.map(kr => {
+             const { id, ...rest } = kr; // Remove mock IDs
+             return rest;
+          }))
+          .select();
+
+        if (krError) throw krError;
+
+        // Update local state with saved KRs
+        const formattedKRs = savedKRs.map(kr => ({
+          ...kr,
+          currentValue: kr.current,
+          targetValue: kr.target,
+          metricType: kr.metric_type
+        }));
+
+        setObjectives(prev => prev.map(obj => 
+          obj.id === savedObjective.id ? { ...savedObjective, keyResults: formattedKRs } : obj
+        ));
+        setSelectedObjective({ ...savedObjective, keyResults: formattedKRs });
+      }
+
+    } catch (error) {
+      console.error('Error saving objective:', error);
+      alert('Failed to save objective: ' + error.message);
+    }
+    
     setIsFormOpen(false);
   };
 
