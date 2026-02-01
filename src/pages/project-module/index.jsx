@@ -1,7 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Header from '../../components/ui/Header';
 import Sidebar from '../../components/ui/Sidebar';
 import { useSidebar } from '../../contexts/SidebarContext';
+import { useOrganization } from '../../contexts/OrganizationContext';
+import { supabase } from '../../utils/supabaseClient';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
 import Select from '../../components/ui/Select';
@@ -12,6 +14,10 @@ import ModuleObjectivesList from '../../components/ModuleObjectivesList';
 
 const ProjectModule = () => {
   const { isCollapsed } = useSidebar();
+  const { currentOrg } = useOrganization();
+  const [projectsList, setProjectsList] = useState([]);
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false);
+
   const [portfolio, setPortfolio] = useState('Corporate');
   const [status, setStatus] = useState('All');
   const [timeframe, setTimeframe] = useState('Q1 2025');
@@ -60,20 +66,68 @@ const ProjectModule = () => {
     return showTopOnly ? ordered.slice(0, 8) : ordered;
   }, [kpis, selectedCategory, showTopOnly]);
 
-  const projects = [
-    { id: 'PRJ-101', name: 'ERP Upgrade', owner: 'A. Khan', status: 'On Track', due: '2025-03-15', budgetUsed: 58 },
-    { id: 'PRJ-102', name: 'New Warehouse Setup', owner: 'S. Patel', status: 'At Risk', due: '2025-04-10', budgetUsed: 71 },
-    { id: 'PRJ-103', name: 'Salesforce Rollout', owner: 'M. Lee', status: 'Delayed', due: '2025-02-28', budgetUsed: 43 },
-    { id: 'PRJ-104', name: 'Quality Initiative', owner: 'R. Ahmed', status: 'On Track', due: '2025-05-01', budgetUsed: 22 },
-  ];
+  useEffect(() => {
+    if (currentOrg?.id) {
+      fetchProjects();
+    } else {
+      setProjectsList([]);
+    }
+  }, [currentOrg?.id]);
+
+  const fetchProjects = async () => {
+    setIsLoadingProjects(true);
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('organization_id', currentOrg.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProjectsList(data || []);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    } finally {
+      setIsLoadingProjects(false);
+    }
+  };
+
+  const handleCreateProject = async () => {
+    if (!currentOrg?.id) return alert('Please select an organization first.');
+    
+    const name = prompt('Enter Project Name:');
+    if (!name) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .insert({
+          name,
+          organization_id: currentOrg.id,
+          status: 'Not Started',
+          budget: 0,
+          spent: 0,
+          progress: 0,
+          manager_name: 'Unassigned'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setProjectsList(prev => [data, ...prev]);
+    } catch (error) {
+      console.error('Error creating project:', error);
+      alert('Failed to create project: ' + error.message);
+    }
+  };
 
   const statusBadge = (s) => {
-    switch (s) {
-      case 'On Track': return 'border-success text-success bg-success/10';
-      case 'At Risk': return 'border-warning text-warning bg-warning/10';
-      case 'Delayed': return 'border-error text-error bg-error/10';
-      default: return 'border-border text-muted-foreground';
-    }
+    const statusLower = s?.toLowerCase() || '';
+    if (statusLower.includes('on track') || statusLower === 'in progress') return 'border-success text-success bg-success/10';
+    if (statusLower.includes('risk')) return 'border-warning text-warning bg-warning/10';
+    if (statusLower.includes('delayed')) return 'border-error text-error bg-error/10';
+    return 'border-border text-muted-foreground';
   };
 
   return (
@@ -162,7 +216,7 @@ const ProjectModule = () => {
                 <h2 className="text-lg font-medium text-foreground">Projects</h2>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" iconName="Plus" iconPosition="left">New Project</Button>
+                <Button variant="outline" size="sm" iconName="Plus" iconPosition="left" onClick={handleCreateProject}>New Project</Button>
                 <Button variant="ghost" size="sm" iconName="Filter" iconPosition="left">Filter</Button>
               </div>
             </div>
@@ -170,27 +224,41 @@ const ProjectModule = () => {
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="text-left border-b border-border">
-                    <th className="px-4 py-3 text-muted-foreground font-medium">ID</th>
                     <th className="px-4 py-3 text-muted-foreground font-medium">Name</th>
                     <th className="px-4 py-3 text-muted-foreground font-medium">Owner</th>
                     <th className="px-4 py-3 text-muted-foreground font-medium">Status</th>
-                    <th className="px-4 py-3 text-muted-foreground font-medium">Due</th>
+                    <th className="px-4 py-3 text-muted-foreground font-medium">Due Date</th>
                     <th className="px-4 py-3 text-muted-foreground font-medium">Budget Used</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {projects.map((p) => (
-                    <tr key={p.id} className="border-b border-border">
-                      <td className="px-4 py-3 font-medium text-foreground">{p.id}</td>
-                      <td className="px-4 py-3 text-foreground">{p.name}</td>
-                      <td className="px-4 py-3 text-foreground">{p.owner}</td>
-                      <td className="px-4 py-3">
-                        <span className={`text-xs px-2 py-0.5 rounded-full border ${statusBadge(p.status)}`}>{p.status}</span>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">{p.due}</td>
-                      <td className="px-4 py-3 text-foreground">{p.budgetUsed}%</td>
-                    </tr>
-                  ))}
+                  {isLoadingProjects ? (
+                    <tr><td colSpan="5" className="px-4 py-4 text-center text-muted-foreground">Loading projects...</td></tr>
+                  ) : projectsList.length === 0 ? (
+                     <tr><td colSpan="5" className="px-4 py-4 text-center text-muted-foreground">No projects found. Create one to get started.</td></tr>
+                  ) : (
+                    projectsList.map((p) => {
+                      const budgetUsed = p.budget > 0 ? Math.round((p.spent / p.budget) * 100) : 0;
+                      return (
+                        <tr key={p.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                          <td className="px-4 py-3 text-foreground font-medium">{p.name}</td>
+                          <td className="px-4 py-3 text-foreground">{p.manager_name || '-'}</td>
+                          <td className="px-4 py-3">
+                            <span className={`text-xs px-2 py-0.5 rounded-full border ${statusBadge(p.status)}`}>{p.status}</span>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">{p.end_date || '-'}</td>
+                          <td className="px-4 py-3 text-foreground">
+                             <div className="flex items-center gap-2">
+                               <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                                 <div className="h-full bg-primary" style={{ width: `${Math.min(budgetUsed, 100)}%` }}></div>
+                               </div>
+                               <span>{budgetUsed}%</span>
+                             </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
