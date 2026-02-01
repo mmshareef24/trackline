@@ -31,10 +31,14 @@ const Header = () => {
     setIsNotificationOpen(false);
   };
 
-  const handleProfileAction = (action) => {
+  const handleProfileAction = async (action) => {
     setIsProfileOpen(false);
     if (action === 'logout') {
-      logout();
+      try {
+        await logout();
+      } catch (e) {
+        console.error('Logout failed:', e);
+      }
       navigate('/login');
       return;
     }

@@ -13,8 +13,17 @@ const Logout = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    logout();
-    const timer = setTimeout(() => navigate('/login'), 1200);
+    const doLogout = async () => {
+      try {
+        await logout();
+      } catch (e) {
+        console.error(e);
+      }
+      navigate('/login');
+    };
+    
+    // Small delay to show the "Signed out" message briefly, or just redirect
+    const timer = setTimeout(doLogout, 1200);
     return () => clearTimeout(timer);
   }, [logout, navigate]);
 

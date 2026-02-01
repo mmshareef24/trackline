@@ -85,8 +85,14 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       return;
     }
-    await supabase.auth.signOut();
-    setUser(null);
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error('Error signing out:', e);
+    } finally {
+      setUser(null);
+      setSession(null);
+    }
   };
 
   const value = useMemo(() => ({ user, session, loading, login, logout }), [user, session, loading]);
