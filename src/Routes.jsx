@@ -28,6 +28,7 @@ import ExecutiveDashboard from './pages/executive-dashboard';
 import AIAssistant from './pages/ai-assistant';
 import KnowledgeBase from './pages/knowledge-base';
 import TrainingGuide from './pages/training-guide';
+import Diagnostic from './pages/Diagnostic';
 
 const Routes = () => {
   const RequireAuth = ({ children }) => {
@@ -76,6 +77,7 @@ const Routes = () => {
           <Route path="/supply-chain-module" element={<RequireAuth><SupplyChainModule /></RequireAuth>} />
           <Route path="/all-pages" element={<RequireAuth><AllPages /></RequireAuth>} />
           <Route path="/more" element={<RequireAuth><AllPages /></RequireAuth>} />
+          <Route path="/diagnostic" element={<Diagnostic />} />
           <Route path="*" element={<NotFound />} />
         </RouterRoutes>
         </SidebarProvider>
