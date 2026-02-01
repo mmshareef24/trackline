@@ -380,6 +380,28 @@ const ObjectiveCreationAndManagement = () => {
           <div className={`${
             viewMode === 'details' ? 'hidden lg:block' : 'block'
           } w-full lg:w-2/5 lg:border-r border-border max-w-full overflow-y-auto p-4 sm:p-6`}> 
+            
+            {/* Connection Diagnostic Button */}
+            <div className="mb-4">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full text-xs"
+                onClick={async () => {
+                  try {
+                    const { data, error } = await supabase.from('organizations').select('count', { count: 'exact', head: true });
+                    if (error) throw error;
+                    alert(`Connection Successful! Organization Count: ${data === null ? 'Accessible' : 'Accessible'}. Database is reachable.`);
+                  } catch (err) {
+                    alert(`Connection Failed: ${err.message}`);
+                    console.error('Diagnostic Error:', err);
+                  }
+                }}
+              >
+                Test Database Connection
+              </Button>
+            </div>
+
             <ObjectivesList
               objectives={objectives}
               onSelectObjective={handleSelectObjective}
