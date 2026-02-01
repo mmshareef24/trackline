@@ -247,8 +247,8 @@ npm run build
 - Powered by React and Vite
 - Styled with Tailwind CSS
 
-Built with ❤️ on Rocket.new#   T r a c k l i n e 
- 
- #   T r a c k 
- 
- 
+## 📅 Repository Status
+- **Repository URL**: https://github.com/mmshareef24/trackline
+- **Last Updated**: 2026-02-01
+
+Built with ❤️ on Rocket.new
