@@ -115,6 +115,8 @@ const ObjectiveCreationAndManagement = () => {
   };
 
   const handleSaveObjective = async (objectiveData) => {
+    console.log('Attempting to save objective...', objectiveData);
+    
     if (!orgId) {
       console.error('No organization ID found');
       alert('System Error: No Organization ID found. Please refresh the page or contact support.');
@@ -155,7 +157,10 @@ const ObjectiveCreationAndManagement = () => {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+           console.error('Supabase Insert Error:', error);
+           throw error;
+        }
         savedObjective = data;
         
         // Optimistic update
@@ -170,7 +175,10 @@ const ObjectiveCreationAndManagement = () => {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Supabase Update Error:', error);
+            throw error;
+        }
         savedObjective = data;
 
         setObjectives(prev => prev.map(obj => 
@@ -211,7 +219,10 @@ const ObjectiveCreationAndManagement = () => {
           }))
           .select();
 
-        if (krError) throw krError;
+        if (krError) {
+            console.error('Supabase Key Results Error:', krError);
+            throw krError;
+        }
 
         // Update local state with saved KRs
         const formattedKRs = savedKRs.map(kr => ({
@@ -227,9 +238,11 @@ const ObjectiveCreationAndManagement = () => {
         setSelectedObjective({ ...savedObjective, keyResults: formattedKRs });
       }
 
+      // alert('Objective saved successfully!'); // Optional success message
+
     } catch (error) {
       console.error('Error saving objective:', error);
-      alert('Failed to save objective: ' + error.message);
+      alert('Failed to save objective: ' + (error.message || JSON.stringify(error)));
     }
     
     setIsFormOpen(false);
