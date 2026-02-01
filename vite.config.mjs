@@ -9,8 +9,19 @@ export default defineConfig(({ mode }) => ({
   base: process.env.VITE_BASE_PATH || "/",
   // This changes the output dir from dist to build
   build: {
-    outDir: "build",
+    outDir: "dist",
     chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@radix-ui/react-slot', 'class-variance-authority', 'clsx', 'tailwind-merge', 'lucide-react'],
+          charts: ['recharts', 'd3'],
+          supabase: ['@supabase/supabase-js'],
+          animation: ['framer-motion']
+        }
+      }
+    }
   },
   plugins: [tsconfigPaths(), react(), tagger()],
   server: {
