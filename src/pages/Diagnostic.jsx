@@ -4,6 +4,9 @@ import { supabase } from '../utils/supabaseClient';
 const Diagnostic = () => {
   const [logs, setLogs] = useState([]);
   const [status, setStatus] = useState('idle');
+  const [manualUrl, setManualUrl] = useState('');
+  const [manualKey, setManualKey] = useState('');
+  const [useManual, setUseManual] = useState(false);
 
   const addLog = (msg, type = 'info') => {
     setLogs(prev => [...prev, { time: new Date().toISOString(), msg, type }]);
@@ -15,48 +18,56 @@ const Diagnostic = () => {
     addLog('Starting diagnostics...', 'info');
 
     // 1. Check Env Vars
-    const url = import.meta.env.VITE_SUPABASE_URL;
-    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const envUrl = import.meta.env.VITE_SUPABASE_URL;
+    const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
-    addLog(`Supabase URL Configured: ${!!url} (${url ? url.substring(0, 15) + '...' : 'Missing'})`);
-    addLog(`Supabase Key Configured: ${!!key} (${key ? 'Present' : 'Missing'})`);
+    // Determine which credentials to use
+    let targetUrl = useManual ? manualUrl : (envUrl || 'https://ygzgenatdfmnmhidqcos.supabase.co');
+    let targetKey = useManual ? manualKey : (envKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlnemdlbmF0ZGZtbm1oaWRxY29zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2MjExMjAsImV4cCI6MjA4NTE5NzEyMH0.GenViHd0Jmc1StwShR7cNqNW5Sw4CJb6K4nbHJ0YVXU');
 
-    // 2. Check Client
-    if (!supabase) {
-      addLog('CRITICAL: Supabase client is null!', 'error');
-      setStatus('failed');
-      return;
+    addLog(`Using ${useManual ? 'MANUAL' : 'DEFAULT'} Configuration`, 'info');
+    addLog(`Target URL: ${targetUrl ? targetUrl.substring(0, 20) + '...' : 'Missing'}`);
+    
+    // Create temporary client for testing if manual
+    let testClient = supabase;
+    if (useManual) {
+      try {
+        const { createClient } = await import('@supabase/supabase-js');
+        testClient = createClient(targetUrl, targetKey);
+        addLog('Created temporary Supabase client with manual keys.', 'success');
+      } catch (e) {
+        addLog(`Failed to create manual client: ${e.message}`, 'error');
+        setStatus('failed');
+        return;
+      }
     }
-    addLog('Supabase client initialized object present.', 'success');
 
     // 3. Network Check (Fetch)
     try {
-      addLog('Attempting network fetch to Supabase URL...', 'info');
-      // Supabase health check or just root
-      const resp = await fetch(url + '/rest/v1/', { 
+      addLog(`Attempting network fetch to ${targetUrl}...`, 'info');
+      const resp = await fetch(targetUrl + '/rest/v1/', { 
         method: 'HEAD',
-        headers: { apikey: key }
+        headers: { apikey: targetKey }
       });
-      addLog(`Network fetch status: ${resp.status} ${resp.statusText}`, resp.ok ? 'success' : 'warning');
+      addLog(`Network fetch status: ${resp.status} ${resp.statusText}`, resp.ok || resp.status === 404 ? 'success' : 'warning');
     } catch (err) {
       addLog(`Network fetch failed: ${err.message}`, 'error');
-      addLog(JSON.stringify(err, Object.getOwnPropertyNames(err)), 'error');
+      addLog('POSSIBLE CAUSE: Firewall/CORS blocking Supabase domain.', 'warning');
     }
 
     // 4. DB Query
     try {
       addLog('Attempting DB Query (organizations)...', 'info');
-      const { data, error } = await supabase.from('organizations').select('count', { count: 'exact', head: true });
+      const { data, error } = await testClient.from('organizations').select('count', { count: 'exact', head: true });
       
       if (error) {
         addLog(`DB Query Error: ${error.message}`, 'error');
         addLog(JSON.stringify(error), 'error');
       } else {
-        addLog('DB Query Success!', 'success');
+        addLog('DB Query Success! Connection is working.', 'success');
       }
     } catch (err) {
-      addLog(`DB Query Exception: ${err.message || 'No message'}`, 'error');
-      addLog(JSON.stringify(err, Object.getOwnPropertyNames(err)), 'error');
+      addLog(`DB Query Exception: ${err.message}`, 'error');
     }
 
     setStatus('done');
@@ -65,6 +76,37 @@ const Diagnostic = () => {
   return (
     <div className="p-8 max-w-4xl mx-auto font-mono text-sm">
       <h1 className="text-2xl font-bold mb-4">System Diagnostics</h1>
+      
+      <div className="mb-6 p-4 border rounded bg-white dark:bg-slate-800">
+        <label className="flex items-center gap-2 mb-4">
+          <input type="checkbox" checked={useManual} onChange={e => setUseManual(e.target.checked)} />
+          <span className="font-bold">Test Custom Credentials</span>
+        </label>
+        
+        {useManual && (
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs mb-1">Supabase URL</label>
+              <input 
+                className="w-full border p-2 rounded" 
+                value={manualUrl} 
+                onChange={e => setManualUrl(e.target.value)} 
+                placeholder="https://xyz.supabase.co"
+              />
+            </div>
+            <div>
+              <label className="block text-xs mb-1">Supabase Anon Key</label>
+              <input 
+                className="w-full border p-2 rounded" 
+                value={manualKey} 
+                onChange={e => setManualKey(e.target.value)} 
+                placeholder="eyJ..."
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
       <button 
         onClick={runDiagnostics}
         className="bg-blue-600 text-white px-4 py-2 rounded mb-6 hover:bg-blue-700"
