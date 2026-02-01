@@ -33,14 +33,32 @@ const OrganizationSettings = () => {
   };
 
   const handleTestConnection = async () => {
+    console.log('Test Connection clicked');
     setConnectionStatus('checking');
-    try {
-      const { data, error } = await supabase.from('organizations').select('count', { count: 'exact', head: true });
-      if (error) throw error;
-      setConnectionStatus('success');
-    } catch (err) {
-      console.error(err);
+    
+    if (!supabase) {
+      console.error('Supabase client is not initialized');
       setConnectionStatus('error');
+      alert('System Error: Supabase client is not initialized.');
+      return;
+    }
+
+    try {
+      console.log('Pinging Supabase...');
+      const { data, error } = await supabase.from('organizations').select('count', { count: 'exact', head: true });
+      
+      if (error) {
+        console.error('Supabase Ping Error:', error);
+        throw error;
+      }
+      
+      console.log('Supabase Ping Success:', data);
+      setConnectionStatus('success');
+      // alert('Connection Successful!'); // Optional feedback
+    } catch (err) {
+      console.error('Connection Test Exception:', err);
+      setConnectionStatus('error');
+      alert('Connection Failed: ' + (err.message || 'Unknown error'));
     }
   };
 
