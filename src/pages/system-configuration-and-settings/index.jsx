@@ -10,6 +10,7 @@ import SecuritySettings from './components/SecuritySettings';
 import NotificationSettings from './components/NotificationSettings';
 import IntegrationSettings from './components/IntegrationSettings';
 import DataManagement from './components/DataManagement';
+import OrganizationSettings from './components/OrganizationSettings';
 
 const SystemConfigurationAndSettings = () => {
   const { isCollapsed } = useSidebar();
@@ -17,6 +18,12 @@ const SystemConfigurationAndSettings = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const tabs = [
+  {
+    id: 'organization',
+    label: 'Organization',
+    icon: 'Building',
+    description: 'Manage multiple companies and database connection'
+  },
   {
     id: 'general',
     label: 'General Settings',
@@ -73,6 +80,8 @@ const SystemConfigurationAndSettings = () => {
 
   const renderTabContent = () => {
     switch (activeTab) {
+      case 'organization':
+        return <OrganizationSettings />;
       case 'general':
         return <GeneralSettings />;
       case 'integrations':

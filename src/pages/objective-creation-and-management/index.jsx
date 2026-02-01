@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Header from '../../components/ui/Header';
 import Sidebar from '../../components/ui/Sidebar';
 import { useSidebar } from '../../contexts/SidebarContext';
+import { useOrganization } from '../../contexts/OrganizationContext';
 import { supabase } from '../../utils/supabaseClient';
 
 import Button from '../../components/ui/Button';
@@ -12,6 +13,7 @@ import BulkActions from './components/BulkActions';
 
 const ObjectiveCreationAndManagement = () => {
   const { isCollapsed } = useSidebar();
+  const { currentOrg } = useOrganization();
   const [objectives, setObjectives] = useState([]);
   const [selectedObjective, setSelectedObjective] = useState(null);
   const [selectedObjectives, setSelectedObjectives] = useState([]);
@@ -19,81 +21,55 @@ const ObjectiveCreationAndManagement = () => {
   const [formMode, setFormMode] = useState('create');
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState('split'); // 'split', 'list', 'details'
-  const [orgId, setOrgId] = useState(null);
+  
+  // Use currentOrg.id from context instead of local orgId state
+  const orgId = currentOrg?.id;
 
   useEffect(() => {
-    const fetchOrgAndObjectives = async () => {
+    const fetchObjectives = async () => {
+      if (!orgId) return;
+
       setIsLoading(true);
       try {
-        // Fetch organization (defaulting to the first one found if not authenticated user-org context)
-        let { data: orgs, error: orgError } = await supabase.from('organizations').select('id').limit(1);
+        // Fetch objectives for current org
+        const { data: objs, error } = await supabase
+          .from('objectives')
+          .select(`
+            *,
+            keyResults:key_results(*)
+          `)
+          .eq('organization_id', orgId)
+          .order('updated_at', { ascending: false });
+
+        if (error) throw error;
         
-        if (orgError) {
-          console.error('Error fetching org:', orgError);
-        }
-
-        let organizationId = orgs?.[0]?.id;
-
-        // If no org exists, try to create one (fallback)
-        if (!organizationId) {
-          console.log('No organization found, attempting to create Default Org...');
-          const { data: newOrg, error: createError } = await supabase
-            .from('organizations')
-            .insert({ name: 'Default Org' })
-            .select()
-            .single();
-            
-          if (createError) {
-             console.error('Error creating default org:', createError);
-          } else {
-             organizationId = newOrg?.id;
-          }
-        }
-
-        setOrgId(organizationId);
-
-        if (organizationId) {
-          // Fetch objectives
-          const { data: objs, error } = await supabase
-            .from('objectives')
-            .select(`
-              *,
-              keyResults:key_results(*)
-            `)
-            .eq('organization_id', organizationId)
-            .order('updated_at', { ascending: false });
-
-          if (error) throw error;
-          
-          // Map DB structure to frontend structure
-          const formattedObjectives = objs.map(obj => ({
-            ...obj,
-            owner: obj.owner_name,
-            team: obj.team_name,
-            quarter: obj.quarter_name || obj.quarter, // Fallback
-            status: obj.status === 'not_started' ? 'draft' : 
-                   obj.status === 'in_progress' ? 'active' : 
-                   obj.status,
-            keyResults: obj.keyResults?.map(kr => ({
-              ...kr,
-              currentValue: kr.current,
-              targetValue: kr.target,
-              metricType: kr.metric_type
-            })) || []
-          }));
-          
-          setObjectives(formattedObjectives);
-        }
+        // Map DB structure to frontend structure
+        const formattedObjectives = objs.map(obj => ({
+          ...obj,
+          owner: obj.owner_name,
+          team: obj.team_name,
+          quarter: obj.quarter_name || obj.quarter, // Fallback
+          status: obj.status === 'not_started' ? 'draft' : 
+                  obj.status === 'in_progress' ? 'active' : 
+                  obj.status,
+          keyResults: obj.keyResults?.map(kr => ({
+            ...kr,
+            currentValue: kr.current,
+            targetValue: kr.target,
+            metricType: kr.metric_type
+          })) || []
+        }));
+        
+        setObjectives(formattedObjectives);
       } catch (error) {
         console.error('Error loading objectives:', error);
-        // Don't alert on load error to avoid spamming, just log
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchOrgAndObjectives();
-  }, []);
+    fetchObjectives();
+  }, [orgId]); // Re-fetch when orgId changes
 
   const handleSelectObjective = (objective) => {
     setSelectedObjective(objective);
@@ -381,27 +357,6 @@ const ObjectiveCreationAndManagement = () => {
             viewMode === 'details' ? 'hidden lg:block' : 'block'
           } w-full lg:w-2/5 lg:border-r border-border max-w-full overflow-y-auto p-4 sm:p-6`}> 
             
-            {/* Connection Diagnostic Button */}
-            <div className="mb-4">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full text-xs"
-                onClick={async () => {
-                  try {
-                    const { data, error } = await supabase.from('organizations').select('count', { count: 'exact', head: true });
-                    if (error) throw error;
-                    alert(`Connection Successful! Organization Count: ${data === null ? 'Accessible' : 'Accessible'}. Database is reachable.`);
-                  } catch (err) {
-                    alert(`Connection Failed: ${err.message}`);
-                    console.error('Diagnostic Error:', err);
-                  }
-                }}
-              >
-                Test Database Connection
-              </Button>
-            </div>
-
             <ObjectivesList
               objectives={objectives}
               onSelectObjective={handleSelectObjective}

@@ -4,6 +4,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { SidebarProvider } from "./contexts/SidebarContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { OrganizationProvider } from "./contexts/OrganizationContext";
 import NotFound from "./pages/NotFound";
 import AllPages from "./pages/all-pages";
 import UserAndPermissionManagement from './pages/user-and-permission-management';
@@ -44,6 +45,7 @@ const Routes = () => {
     <BrowserRouter basename={basePath}>
       <ErrorBoundary>
       <AuthProvider>
+        <OrganizationProvider>
         <SidebarProvider>
         <ScrollToTop />
         <RouterRoutes>
@@ -77,6 +79,7 @@ const Routes = () => {
           <Route path="*" element={<NotFound />} />
         </RouterRoutes>
         </SidebarProvider>
+        </OrganizationProvider>
       </AuthProvider>
       </ErrorBoundary>
     </BrowserRouter>
