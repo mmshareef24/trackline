@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../utils/supabaseClient';
+import { useOrganization } from '../contexts/OrganizationContext';
 
 const statusOptions = [
   { value: 'not_started', label: 'Not Started' },
@@ -17,6 +19,7 @@ const priorityOptions = [
 
 export default function ModuleObjectives({ moduleKey, moduleLabel }) {
   const { session, user } = useAuth();
+  const { currentOrg } = useOrganization();
   const token = session?.access_token || '';
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -32,6 +35,12 @@ export default function ModuleObjectives({ moduleKey, moduleLabel }) {
   const createObjective = async (e) => {
     e?.preventDefault?.();
     setMessage('');
+    
+    if (!currentOrg?.id) {
+      setMessage('No organization selected. Please check Settings.');
+      return;
+    }
+    
     if (!canSubmit) return;
     setBusy(true);
     try {
@@ -40,22 +49,26 @@ export default function ModuleObjectives({ moduleKey, moduleLabel }) {
         description: description.trim(),
         status,
         priority,
-        moduleKey,
+        category: moduleKey, // Use moduleKey (e.g., 'project', 'finance') as category
+        organization_id: currentOrg.id,
+        owner_name: user?.name || user?.email,
+        updated_at: new Date().toISOString(),
       };
-      if (year && quarter) {
-        payload.year = Number(year);
-        payload.quarter = Number(quarter);
+      
+      if (quarter && year) {
+        payload.quarter_name = `Q${quarter} ${year}`;
+      } else if (year) {
+         payload.quarter_name = `FY ${year}`;
       }
-      const resp = await fetch('/api/objectivesCreate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.error || 'Failed to create objective');
+
+      const { data, error } = await supabase
+        .from('objectives')
+        .insert(payload)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
       setMessage('Objective created successfully');
       setTitle('');
       setDescription('');
@@ -63,7 +76,13 @@ export default function ModuleObjectives({ moduleKey, moduleLabel }) {
       setPriority('medium');
       setQuarter('');
       setYear('');
+      
+      // Optionally trigger refresh if list component is sibling
+      // But we can't easily without context or prop callback.
+      // For now, list handles its own refresh button.
+      
     } catch (err) {
+      console.error(err);
       setMessage(err.message || 'Error creating objective');
     } finally {
       setBusy(false);

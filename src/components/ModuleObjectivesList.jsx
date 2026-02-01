@@ -1,9 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../utils/supabaseClient';
+import { useOrganization } from '../contexts/OrganizationContext';
 import Icon from './AppIcon';
 
 export default function ModuleObjectivesList({ moduleKey, moduleLabel }) {
   const { session } = useAuth();
+  const { currentOrg } = useOrganization();
   const token = session?.access_token || '';
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -12,17 +15,23 @@ export default function ModuleObjectivesList({ moduleKey, moduleLabel }) {
   const canLoad = useMemo(() => !!moduleKey && !!token, [moduleKey, token]);
 
   const load = async () => {
-    if (!canLoad) return;
+    if (!currentOrg?.id) return; // Wait for org to load
+    
     setLoading(true);
     setError('');
     try {
-      const resp = await fetch(`/api/objectivesByModule?moduleKey=${encodeURIComponent(moduleKey)}&limit=50`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data?.error || 'Failed to load objectives');
-      setItems(Array.isArray(data?.data) ? data.data : []);
+      const { data, error } = await supabase
+        .from('objectives')
+        .select('*')
+        .eq('organization_id', currentOrg.id)
+        .eq('category', moduleKey)
+        .order('updated_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setItems(data || []);
     } catch (e) {
+      console.error(e);
       setError(e.message || 'Error loading objectives');
     } finally {
       setLoading(false);
@@ -32,7 +41,7 @@ export default function ModuleObjectivesList({ moduleKey, moduleLabel }) {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [moduleKey, token]);
+  }, [moduleKey, currentOrg?.id]);
 
   return (
     <div className="mt-3 border rounded-lg p-4 bg-white/60 dark:bg-slate-800/60">
