@@ -81,17 +81,25 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    if (!supabase) {
-      setUser(null);
-      return;
+    // Always clear local state immediately
+    setUser(null);
+    setSession(null);
+    
+    // Clear any app-specific local storage
+    try {
+      localStorage.removeItem('trackline_selected_org_id');
+      localStorage.removeItem('supabase.auth.token'); // If using default key
+      // Add other keys if needed
+    } catch (e) {
+      console.warn('Error clearing local storage:', e);
     }
+
+    if (!supabase) return;
+
     try {
       await supabase.auth.signOut();
     } catch (e) {
       console.error('Error signing out:', e);
-    } finally {
-      setUser(null);
-      setSession(null);
     }
   };
 

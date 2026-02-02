@@ -14,6 +14,9 @@ const Logout = () => {
 
   useEffect(() => {
     const doLogout = async () => {
+      // Clear local storage explicitly as a backup
+      localStorage.clear();
+      
       try {
         await logout();
       } catch (e) {
@@ -23,7 +26,7 @@ const Logout = () => {
     };
     
     // Small delay to show the "Signed out" message briefly, or just redirect
-    const timer = setTimeout(doLogout, 1200);
+    const timer = setTimeout(doLogout, 800);
     return () => clearTimeout(timer);
   }, [logout, navigate]);
 
