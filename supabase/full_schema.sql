@@ -19,7 +19,7 @@ EXCEPTION
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE metric_type_enum AS ENUM ('percentage','number','currency','boolean');
+    CREATE TYPE metric_type_enum AS ENUM ('percentage','number','currency','boolean','custom');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
