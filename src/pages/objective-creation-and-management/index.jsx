@@ -13,7 +13,7 @@ import BulkActions from './components/BulkActions';
 
 const ObjectiveCreationAndManagement = () => {
   const { isCollapsed } = useSidebar();
-  const { currentOrg } = useOrganization();
+  const { currentOrg, isLoading: isOrgLoading } = useOrganization();
   const [objectives, setObjectives] = useState([]);
   const [selectedObjective, setSelectedObjective] = useState(null);
   const [selectedObjectives, setSelectedObjectives] = useState([]);
@@ -27,7 +27,12 @@ const ObjectiveCreationAndManagement = () => {
 
   useEffect(() => {
     const fetchObjectives = async () => {
-      if (!orgId) return;
+      if (isOrgLoading) return;
+
+      if (!orgId) {
+        setIsLoading(false);
+        return;
+      }
 
       setIsLoading(true);
       try {
@@ -69,7 +74,7 @@ const ObjectiveCreationAndManagement = () => {
     };
 
     fetchObjectives();
-  }, [orgId]); // Re-fetch when orgId changes
+  }, [orgId, isOrgLoading]); // Re-fetch when orgId changes
 
   const handleSelectObjective = (objective) => {
     setSelectedObjective(objective);

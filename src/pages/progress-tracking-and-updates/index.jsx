@@ -14,7 +14,7 @@ import Button from '../../components/ui/Button';
 
 const ProgressTrackingAndUpdates = () => {
   const { isCollapsed } = useSidebar();
-  const { currentOrg } = useOrganization();
+  const { currentOrg, isLoading: isOrgLoading } = useOrganization();
   const [selectedObjective, setSelectedObjective] = useState(null);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [showEvidenceModal, setShowEvidenceModal] = useState(false);
@@ -29,7 +29,12 @@ const ProgressTrackingAndUpdates = () => {
 
   useEffect(() => {
     const fetchObjectives = async () => {
-      if (!currentOrg?.id) return;
+      if (isOrgLoading) return;
+      
+      if (!currentOrg?.id) {
+        setIsLoading(false);
+        return;
+      }
       
       setIsLoading(true);
       try {
@@ -75,7 +80,7 @@ const ProgressTrackingAndUpdates = () => {
     };
 
     fetchObjectives();
-  }, [currentOrg?.id]);
+  }, [currentOrg?.id, isOrgLoading]);
 
   const handleObjectiveSelect = (objective) => {
     setSelectedObjective(objective);
