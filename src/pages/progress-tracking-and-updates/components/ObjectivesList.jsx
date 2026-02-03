@@ -174,6 +174,14 @@ const ObjectivesList = ({
                     </span>
                   </div>
                   
+                  {objective?.module && (
+                    <div className="mb-2">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full border text-primary bg-primary/10 border-primary/20">
+                        {objective.module.charAt(0).toUpperCase() + objective.module.slice(1).replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                  )}
+                  
                   {/* Progress Bar */}
                   <div className="mb-2">
                     <div className="flex items-center justify-between mb-1">

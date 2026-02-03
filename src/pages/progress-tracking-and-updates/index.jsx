@@ -183,6 +183,23 @@ const ProgressTrackingAndUpdates = () => {
     // In a real app, this would upload to a server
   };
 
+  if (isOrgLoading || isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <Sidebar />
+        <div className={`transition-all duration-300 pt-16 ${isCollapsed ? 'ml-0 md:ml-16' : 'ml-0 md:ml-60'}`}>
+          <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+            <div className="text-center">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-muted-foreground">{isOrgLoading ? 'Loading organization...' : 'Loading objectives...'}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />

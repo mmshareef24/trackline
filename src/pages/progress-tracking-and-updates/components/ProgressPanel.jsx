@@ -77,6 +77,11 @@ const ProgressPanel = ({ objective, onProgressUpdate, onCommentAdd, onEvidenceUp
               <span className={`text-sm px-3 py-1 rounded-full border ${getStatusColor(objective?.status)}`}>
                 {objective?.status?.replace('-', ' ')}
               </span>
+              {objective?.module && (
+                <span className="text-sm px-3 py-1 rounded-full border text-primary bg-primary/10 border-primary/20">
+                  {objective.module.charAt(0).toUpperCase() + objective.module.slice(1).replace(/_/g, ' ')}
+                </span>
+              )}
             </div>
           </div>
           <div className="text-right">

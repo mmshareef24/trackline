@@ -147,6 +147,67 @@ const ObjectiveCreationAndManagement = () => {
         }
       }
 
+      // Resolve Quarter
+      let quarterId = null;
+      if (objData.quarter) {
+        // Parse "Q1 2025" or similar
+        const parts = objData.quarter.split(' ');
+        if (parts.length >= 2) {
+          const qStr = parts[0]; // "Q1"
+          const yStr = parts[1]; // "2025"
+          const qNum = parseInt(qStr.replace('Q', ''));
+          const yNum = parseInt(yStr);
+          
+          if (!isNaN(qNum) && !isNaN(yNum)) {
+            const { data: qData } = await supabase
+              .from('quarters')
+              .select('id')
+              .eq('quarter', qNum)
+              .eq('year', yNum)
+              .maybeSingle();
+            if (qData) quarterId = qData.id;
+          }
+        }
+      }
+
+      // Resolve Owner (Best Effort)
+      let ownerId = null;
+      if (objData.owner) {
+        // Try exact name match
+        const { data: uData } = await supabase
+          .from('users')
+          .select('id')
+          .ilike('name', objData.owner) // Case insensitive
+          .maybeSingle();
+        if (uData) ownerId = uData.id;
+      }
+      
+      // Fallback owner to current user if not found
+      if (!ownerId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          // Check if this auth user is in our public.users table
+          const { data: publicUser } = await supabase
+            .from('users')
+            .select('id')
+            .eq('email', user.email)
+            .maybeSingle();
+          if (publicUser) ownerId = publicUser.id;
+        }
+      }
+
+      // Resolve Team
+      let teamId = null;
+      if (objData.team) {
+         const { data: tData } = await supabase
+          .from('teams')
+          .select('id')
+          .eq('organization_id', orgId)
+          .ilike('name', objData.team)
+          .maybeSingle();
+        if (tData) teamId = tData.id;
+      }
+
       const dbObjectiveData = {
         title: objData.title,
         description: objData.description,
@@ -154,54 +215,72 @@ const ObjectiveCreationAndManagement = () => {
         priority: objData.priority,
         organization_id: orgId,
         category: objData.category,
-        module: objData.module, // Save the raw module key
-        department_id: departmentId, // Save the resolved department ID
-        owner_name: objData.owner,
-        team_name: objData.team,
-        quarter_name: objData.quarter,
+        module: objData.module,
+        department_id: departmentId,
+        owner_id: ownerId,
+        team_id: teamId,
+        quarter_id: quarterId,
         updated_at: new Date().toISOString()
       };
 
       let savedObjective;
 
-      if (formMode === 'create') {
-        const { data, error } = await supabase
-          .from('objectives')
-          .insert({
-            ...dbObjectiveData,
-            created_at: new Date().toISOString()
-          })
-          .select()
-          .single();
-
-        if (error) {
-           console.error('Supabase Insert Error:', error);
-           throw error;
+      const performSave = async (payload) => {
+        if (formMode === 'create') {
+          return await supabase
+            .from('objectives')
+            .insert({
+              ...payload,
+              created_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+        } else {
+          return await supabase
+            .from('objectives')
+            .update(payload)
+            .eq('id', selectedObjective.id)
+            .select()
+            .single();
         }
-        savedObjective = data;
+      };
+
+      // First attempt with all data (including module)
+      let { data, error } = await performSave(dbObjectiveData);
+
+      // Retry without module if column missing error (42703 undefined_column)
+      if (error && (error.code === '42703' || error.message?.includes('module'))) {
+        console.warn('Module column missing in DB, retrying without module...');
+        const { module, ...safeData } = dbObjectiveData;
+        const retryResult = await performSave(safeData);
+        data = retryResult.data;
+        error = retryResult.error;
         
+        if (!error) {
+           alert('Objective saved, but "Module" could not be stored (Database update required).');
+        }
+      }
+
+      if (error) {
+         console.error('Supabase Save Error:', error);
+         throw error;
+      }
+      savedObjective = data;
+
+      if (formMode === 'create') {
         // Optimistic update
-        setObjectives(prev => [{ ...savedObjective, keyResults: [] }, ...prev]);
-        setSelectedObjective({ ...savedObjective, keyResults: [] });
+        // We include module in local state even if not saved to DB, so UI reflects it until refresh
+        const optimisticObj = { ...savedObjective, module: dbObjectiveData.module };
+        setObjectives(prev => [{ ...optimisticObj, keyResults: [] }, ...prev]);
+        setSelectedObjective({ ...optimisticObj, keyResults: [] });
 
       } else {
-        const { data, error } = await supabase
-          .from('objectives')
-          .update(dbObjectiveData)
-          .eq('id', selectedObjective.id)
-          .select()
-          .single();
-
-        if (error) {
-            console.error('Supabase Update Error:', error);
-            throw error;
-        }
-        savedObjective = data;
-
+        // Update local state
+        const optimisticObj = { ...savedObjective, module: dbObjectiveData.module };
         setObjectives(prev => prev.map(obj => 
-          obj.id === savedObjective.id ? { ...savedObjective, keyResults: obj.keyResults } : obj
+          obj.id === savedObjective.id ? { ...optimisticObj, keyResults: obj.keyResults } : obj
         ));
-        setSelectedObjective(prev => ({ ...prev, ...savedObjective }));
+        setSelectedObjective(prev => ({ ...prev, ...optimisticObj }));
       }
 
       // Handle Key Results
@@ -347,6 +426,23 @@ const ObjectiveCreationAndManagement = () => {
       setSelectedObjectives(objectives?.map(obj => obj?.id));
     }
   };
+
+  if (isOrgLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <Sidebar />
+        <div className="md:ml-60 pt-16">
+          <div className="flex items-center justify-center h-96">
+            <div className="text-center">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading organization...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
