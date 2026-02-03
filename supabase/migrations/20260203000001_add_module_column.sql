@@ -1,0 +1,1 @@
+ALTER TABLE objectives ADD COLUMN IF NOT EXISTS module TEXT;

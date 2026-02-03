@@ -32,6 +32,7 @@ model Objective {
   description     String?
   owner_id        String?  @db.Uuid
   department_id   String?  @db.Uuid
+  module          String?
   status          String
   priority        String
   quarter_id      Int?

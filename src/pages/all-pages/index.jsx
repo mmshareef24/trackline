@@ -25,6 +25,8 @@ const AllPages = () => {
     { label: 'Finance Module', path: '/finance-module', icon: 'Banknote', description: 'Revenue, expenses, and cash flow' },
     { label: 'Sales Module', path: '/sales-module', icon: 'Handshake', description: 'Pipeline, conversion, and opportunities' },
     { label: 'Supply Chain Module', path: '/supply-chain-module', icon: 'Truck', description: 'Inventory, OTIF, and purchase orders' },
+    { label: 'HR Module', path: '/hr-module', icon: 'Users', description: 'Workforce, recruitment, and development' },
+    { label: 'IT Module', path: '/it-module', icon: 'Server', description: 'Systems, support, and infrastructure' },
   ];
 
   return (

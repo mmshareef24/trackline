@@ -119,6 +119,31 @@ export default {
     { label: 'Defect Rate', value: '—', unit: 'percent', category: 'Production', priority: 7, icon: 'AlertTriangle', pinned: true, target: 1, trend: 0 },
   ],
 
+  hr: [
+    // Workforce
+    { label: 'Total Headcount', value: '—', unit: 'count', category: 'Workforce', priority: 10, icon: 'Users', pinned: true, target: 500, trend: 0 },
+    { label: 'Turnover Rate (%)', value: '—', unit: 'percent', category: 'Workforce', priority: 9, icon: 'UserMinus', pinned: true, target: 5, trend: 0 },
+    { label: 'Absenteeism Rate (%)', value: '—', unit: 'percent', category: 'Workforce', priority: 8, icon: 'Clock', trend: 0 },
+    // Recruitment
+    { label: 'Time to Hire (Days)', value: '—', unit: 'days', category: 'Recruitment', priority: 8, icon: 'Timer', pinned: true, target: 30, trend: 0 },
+    { label: 'Cost per Hire', value: '—', unit: 'sar', category: 'Recruitment', priority: 7, icon: 'Wallet', trend: 0 },
+    // Development
+    { label: 'Training Hours per Employee', value: '—', unit: 'hours', category: 'Development', priority: 7, icon: 'BookOpen', trend: 0 },
+    { label: 'Employee Engagement Score', value: '—', unit: 'ratio', category: 'Development', priority: 9, icon: 'Heart', trend: 0 },
+  ],
+
+  it: [
+    // Operations
+    { label: 'System Uptime (%)', value: '—', unit: 'percent', category: 'Operations', priority: 10, icon: 'Server', pinned: true, target: 99.9, trend: 0 },
+    { label: 'Mean Time to Resolve (MTTR)', value: '—', unit: 'hours', category: 'Operations', priority: 9, icon: 'Clock', pinned: true, target: 4, trend: 0 },
+    // Support
+    { label: 'Open Support Tickets', value: '—', unit: 'count', category: 'Support', priority: 8, icon: 'Ticket', pinned: true, target: 10, trend: 0 },
+    { label: 'First Contact Resolution (%)', value: '—', unit: 'percent', category: 'Support', priority: 7, icon: 'CheckCircle2', trend: 0 },
+    // Security & Assets
+    { label: 'Security Incidents', value: '—', unit: 'count', category: 'Security', priority: 10, icon: 'ShieldAlert', pinned: true, target: 0, trend: 0 },
+    { label: 'IT Asset Utilization (%)', value: '—', unit: 'percent', category: 'Assets', priority: 6, icon: 'Monitor', trend: 0 },
+  ],
+
   // Optional: Executive Cross-Module KPIs
   executive: [
     { label: 'Total Cost per MT', value: '—', unit: 'sar_per_mt', category: 'Financial', priority: 10, icon: 'Receipt', pinned: true, target: 1200, trend: 0 },

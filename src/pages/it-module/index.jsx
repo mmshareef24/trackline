@@ -10,32 +10,31 @@ import { formatValue, formatTrend, trendClass, formatDelta, deltaClass } from '.
 import ModuleObjectives from '../../components/ModuleObjectives';
 import ModuleObjectivesList from '../../components/ModuleObjectivesList';
 
-const FinanceModule = () => {
+const ITModule = () => {
   const { isCollapsed } = useSidebar();
-  const [period, setPeriod] = useState('Jan 2025');
   const [department, setDepartment] = useState('All');
-
-  const periodOptions = [
-    { value: 'Jan 2025', label: 'Jan 2025' },
-    { value: 'Feb 2025', label: 'Feb 2025' },
-    { value: 'Q1 2025', label: 'Q1 2025' },
-  ];
+  const [timeframe, setTimeframe] = useState('This Month');
 
   const departmentOptions = [
-    { value: 'All', label: 'All' },
-    { value: 'Sales', label: 'Sales' },
-    { value: 'Operations', label: 'Operations' },
-    { value: 'IT', label: 'IT' },
-    { value: 'HR', label: 'HR' },
+    { value: 'All', label: 'All Departments' },
+    { value: 'Infrastructure', label: 'Infrastructure' },
+    { value: 'Support', label: 'Support' },
+    { value: 'DevOps', label: 'DevOps' },
+  ];
+
+  const timeframeOptions = [
+    { value: 'This Month', label: 'This Month' },
+    { value: 'Last Month', label: 'Last Month' },
+    { value: 'Quarter', label: 'Quarter' },
   ];
 
   const defaultKpis = [
-    { label: 'Revenue', value: 'SAR 4.2M', icon: 'Banknote', trend: 6 },
-    { label: 'Expenses', value: 'SAR 2.9M', icon: 'Receipt', trend: -2 },
-    { label: 'Gross Margin', value: '31%', icon: 'Percent', trend: 3 },
-    { label: 'Cash Flow', value: 'SAR +410k', icon: 'ArrowUpRight', trend: 1 },
+    { label: 'System Uptime', value: '99.98%', icon: 'Server', trend: 1 },
+    { label: 'Open Tickets', value: '14', icon: 'Ticket', trend: -2 },
+    { label: 'Avg Resolution Time', value: '3.5 Hours', icon: 'Clock', trend: 1 },
+    { label: 'Security Incidents', value: '0', icon: 'Shield', trend: 0 },
   ];
-  const kpis = getModuleKpis('finance', defaultKpis);
+  const kpis = getModuleKpis('it', defaultKpis);
 
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [showTopOnly, setShowTopOnly] = useState(true);
@@ -54,24 +53,12 @@ const FinanceModule = () => {
     return showTopOnly ? ordered.slice(0, 8) : ordered;
   }, [kpis, selectedCategory, showTopOnly]);
 
-  const transactions = [
-    { id: 'TX-9001', account: 'AR - Customer A', type: 'Invoice', amount: 180000, status: 'Open', date: '2025-01-07' },
-    { id: 'TX-9002', account: 'AP - Supplier B', type: 'Bill', amount: 125000, status: 'Paid', date: '2025-01-04' },
-    { id: 'TX-9003', account: 'Payroll', type: 'Expense', amount: 89000, status: 'Posted', date: '2025-01-02' },
-    { id: 'TX-9004', account: 'AR - Customer C', type: 'Invoice', amount: 240000, status: 'Overdue', date: '2024-12-28' },
+  const activeTickets = [
+    { id: 'TKT-501', title: 'VPN Connectivity Issue', priority: 'High', assignee: 'K. Ahmed', status: 'In Progress', createdDate: '2025-02-03' },
+    { id: 'TKT-502', title: 'Printer Setup - Finance', priority: 'Low', assignee: 'M. Ali', status: 'Pending', createdDate: '2025-02-02' },
+    { id: 'TKT-503', title: 'ERP Login Failure', priority: 'Critical', assignee: 'S. Khan', status: 'Resolved', createdDate: '2025-02-01' },
+    { id: 'TKT-504', title: 'New Laptop Request', priority: 'Medium', assignee: 'Procurement', status: 'Approved', createdDate: '2025-01-30' },
   ];
-
-  const statusBadge = (s) => {
-    switch (s) {
-      case 'Open': return 'border-warning text-warning bg-warning/10';
-      case 'Paid': return 'border-success text-success bg-success/10';
-      case 'Posted': return 'border-muted text-muted-foreground bg-muted/10';
-      case 'Overdue': return 'border-error text-error bg-error/10';
-      default: return 'border-border text-muted-foreground';
-    }
-  };
-
-  const formatSAR = (n) => `SAR ${n.toLocaleString()}`;
 
   return (
     <div className="min-h-screen bg-background">
@@ -81,12 +68,12 @@ const FinanceModule = () => {
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-semibold text-foreground">Finance Module</h1>
-              <p className="text-muted-foreground">Revenue, expenses, cash flow, and transactions</p>
+              <h1 className="text-2xl font-semibold text-foreground">IT Module</h1>
+              <p className="text-muted-foreground">Systems, support, and infrastructure metrics</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Select options={periodOptions} value={period} onChange={setPeriod} placeholder="Period" />
               <Select options={departmentOptions} value={department} onChange={setDepartment} placeholder="Department" />
+              <Select options={timeframeOptions} value={timeframe} onChange={setTimeframe} placeholder="Timeframe" />
               <div className="flex items-center gap-2">
                 <label className="text-sm text-muted-foreground">Category</label>
                 <select
@@ -147,18 +134,18 @@ const FinanceModule = () => {
           </div>
 
           {/* Module Objectives */}
-          <ModuleObjectives moduleKey="finance" moduleLabel="Finance" />
+          <ModuleObjectives moduleKey="it" moduleLabel="IT" />
           {/* Module Objectives List */}
-          <ModuleObjectivesList moduleKey="finance" moduleLabel="Finance" />
+          <ModuleObjectivesList moduleKey="it" moduleLabel="IT" />
 
           <div className="bg-card border border-border rounded-lg overflow-hidden">
             <div className="p-4 border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Icon name="ListOrdered" size={18} className="text-muted-foreground" />
-                <h2 className="text-lg font-medium text-foreground">Transactions</h2>
+                <Icon name="Ticket" size={18} className="text-muted-foreground" />
+                <h2 className="text-lg font-medium text-foreground">Active Tickets</h2>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" iconName="Plus" iconPosition="left">New</Button>
+                <Button variant="outline" size="sm" iconName="Plus" iconPosition="left">New Ticket</Button>
                 <Button variant="ghost" size="sm" iconName="Filter" iconPosition="left">Filter</Button>
               </div>
             </div>
@@ -167,24 +154,22 @@ const FinanceModule = () => {
                 <thead>
                   <tr className="text-left border-b border-border">
                     <th className="px-4 py-3 text-muted-foreground font-medium">ID</th>
-                    <th className="px-4 py-3 text-muted-foreground font-medium">Account</th>
-                    <th className="px-4 py-3 text-muted-foreground font-medium">Type</th>
-                    <th className="px-4 py-3 text-muted-foreground font-medium">Amount</th>
+                    <th className="px-4 py-3 text-muted-foreground font-medium">Title</th>
+                    <th className="px-4 py-3 text-muted-foreground font-medium">Priority</th>
+                    <th className="px-4 py-3 text-muted-foreground font-medium">Assignee</th>
                     <th className="px-4 py-3 text-muted-foreground font-medium">Status</th>
-                    <th className="px-4 py-3 text-muted-foreground font-medium">Date</th>
+                    <th className="px-4 py-3 text-muted-foreground font-medium">Created Date</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.map((t) => (
+                  {activeTickets.map((t) => (
                     <tr key={t.id} className="border-b border-border">
                       <td className="px-4 py-3 font-medium text-foreground">{t.id}</td>
-                      <td className="px-4 py-3 text-foreground">{t.account}</td>
-                      <td className="px-4 py-3 text-foreground">{t.type}</td>
-                      <td className="px-4 py-3 text-foreground">{formatSAR(t.amount)}</td>
-                      <td className="px-4 py-3">
-                        <span className={`text-xs px-2 py-0.5 rounded-full border ${statusBadge(t.status)}`}>{t.status}</span>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">{t.date}</td>
+                      <td className="px-4 py-3 text-foreground">{t.title}</td>
+                      <td className="px-4 py-3 text-foreground">{t.priority}</td>
+                      <td className="px-4 py-3 text-foreground">{t.assignee}</td>
+                      <td className="px-4 py-3 text-foreground">{t.status}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{t.createdDate}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -195,9 +180,9 @@ const FinanceModule = () => {
           <div className="bg-card border border-border rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Icon name="FileText" size={18} className="text-muted-foreground" />
-              <h2 className="text-lg font-medium text-foreground">Finance Notes</h2>
+              <h2 className="text-lg font-medium text-foreground">IT Notes</h2>
             </div>
-            <p className="text-sm text-muted-foreground">Record monthly close comments and reconciliations.</p>
+            <p className="text-sm text-muted-foreground">Capture incident reports and maintenance schedules.</p>
           </div>
         </div>
       </main>
@@ -205,4 +190,4 @@ const FinanceModule = () => {
   );
 };
 
-export default FinanceModule;
+export default ITModule;

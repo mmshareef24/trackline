@@ -112,6 +112,18 @@ const Sidebar = () => {
           path: '/supply-chain-module',
           icon: 'Truck',
           description: 'Inventory, OTIF, and purchase orders'
+        },
+        {
+          label: 'HR',
+          path: '/hr-module',
+          icon: 'Users',
+          description: 'Workforce, recruitment, and development'
+        },
+        {
+          label: 'IT',
+          path: '/it-module',
+          icon: 'Server',
+          description: 'Systems, support, and infrastructure'
         }
       ]
     },

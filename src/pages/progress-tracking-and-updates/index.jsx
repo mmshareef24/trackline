@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Header from '../../components/ui/Header';
 import Sidebar from '../../components/ui/Sidebar';
 import { useSidebar } from '../../contexts/SidebarContext';
+import { useOrganization } from '../../contexts/OrganizationContext';
+import { supabase } from '../../utils/supabaseClient';
 import ObjectivesList from './components/ObjectivesList';
 import ProgressPanel from './components/ProgressPanel';
 import QuickStatsBar from './components/QuickStatsBar';
@@ -12,316 +14,68 @@ import Button from '../../components/ui/Button';
 
 const ProgressTrackingAndUpdates = () => {
   const { isCollapsed } = useSidebar();
+  const { currentOrg } = useOrganization();
   const [selectedObjective, setSelectedObjective] = useState(null);
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [showEvidenceModal, setShowEvidenceModal] = useState(false);
   const [selectedKRForEvidence, setSelectedKRForEvidence] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({
     status: 'all',
     priority: 'all'
   });
 
-  // Mock data for objectives
-  const [objectives, setObjectives] = useState([
-    {
-      id: 1,
-      title: "Increase Customer Satisfaction Score",
-      description: "Improve overall customer satisfaction through enhanced support and product quality initiatives.",
-      owner: "Sarah Johnson",
-      quarter: "Q4 2024",
-      status: "on-track",
-      priority: "high",
-      progress: 75,
-      keyResults: 4,
-      daysLeft: 45,
-      lastUpdated: "2 hours ago",
-      keyResultsData: [
-        {
-          id: 101,
-          title: "Achieve NPS score of 70+",
-          type: "Percentage",
-          progress: 80,
-          currentValue: 68,
-          targetValue: 70
-        },
-        {
-          id: 102,
-          title: "Reduce support ticket resolution time to under 4 hours",
-          type: "Time",
-          progress: 65,
-          currentValue: 5.2,
-          targetValue: 4
-        },
-        {
-          id: 103,
-          title: "Implement customer feedback system",
-          type: "Binary",
-          progress: 90,
-          currentValue: 1,
-          targetValue: 1
-        },
-        {
-          id: 104,
-          title: "Train 100% of support staff on new protocols",
-          type: "Percentage",
-          progress: 70,
-          currentValue: 70,
-          targetValue: 100
-        }
-      ],
-      comments: [
-        {
-          id: 1,
-          author: "Sarah Johnson",
-          content: "Great progress on the NPS score! We\'re almost at our target.",
-          timestamp: "2 hours ago"
-        },
-        {
-          id: 2,
-          author: "Mike Chen",
-          content: "The new feedback system is getting positive responses from customers.",
-          timestamp: "1 day ago"
-        }
-      ],
-      recentActivity: [
-        {
-          description: "NPS score updated to 68 (+3 from last week)",
-          timestamp: "2 hours ago",
-          user: "Sarah Johnson"
-        },
-        {
-          description: "Customer feedback system deployed to production",
-          timestamp: "3 days ago",
-          user: "Dev Team"
-        }
-      ],
-      history: [
-        {
-          description: "Progress updated from 70% to 75%",
-          timestamp: "2 hours ago",
-          user: "Sarah Johnson"
-        },
-        {
-          description: "Status changed from \'at-risk\' to \'on-track\'",
-          timestamp: "1 week ago",
-          user: "Sarah Johnson"
-        }
-      ]
-    },
-    {
-      id: 2,
-      title: "Launch New Product Feature",
-      description: "Successfully launch the AI-powered recommendation engine to improve user engagement.",
-      owner: "Alex Rodriguez",
-      quarter: "Q4 2024",
-      status: "at-risk",
-      priority: "high",
-      progress: 45,
-      keyResults: 3,
-      daysLeft: 30,
-      lastUpdated: "5 hours ago",
-      keyResultsData: [
-        {
-          id: 201,
-          title: "Complete feature development",
-          type: "Percentage",
-          progress: 60,
-          currentValue: 60,
-          targetValue: 100
-        },
-        {
-          id: 202,
-          title: "Achieve 80% user adoption within 30 days",
-          type: "Percentage",
-          progress: 0,
-          currentValue: 0,
-          targetValue: 80
-        },
-        {
-          id: 203,
-          title: "Increase user engagement by 25%",
-          type: "Percentage",
-          progress: 15,
-          currentValue: 15,
-          targetValue: 25
-        }
-      ],
-      comments: [
-        {
-          id: 1,
-          author: "Alex Rodriguez",
-          content: "Development is behind schedule due to technical challenges with the ML model.",
-          timestamp: "5 hours ago"
-        }
-      ],
-      recentActivity: [
-        {
-          description: "Development progress updated to 60%",
-          timestamp: "5 hours ago",
-          user: "Alex Rodriguez"
-        }
-      ],
-      history: [
-        {
-          description: "Status changed to \'at-risk\' due to development delays",
-          timestamp: "5 hours ago",
-          user: "Alex Rodriguez"
-        }
-      ]
-    },
-    {
-      id: 3,
-      title: "Expand Market Presence",
-      description: "Enter two new geographical markets and establish local partnerships.",
-      owner: "Emma Davis",
-      quarter: "Q4 2024",
-      status: "behind",
-      priority: "medium",
-      progress: 30,
-      keyResults: 5,
-      daysLeft: 60,
-      lastUpdated: "1 day ago",
-      keyResultsData: [
-        {
-          id: 301,
-          title: "Establish partnerships in 2 new markets",
-          type: "Count",
-          progress: 50,
-          currentValue: 1,
-          targetValue: 2
-        },
-        {
-          id: 302,
-          title: "Achieve SAR 500K revenue from new markets",
-          type: "Revenue",
-          progress: 20,
-          currentValue: 100000,
-          targetValue: 500000
-        }
-      ],
-      comments: [],
-      recentActivity: [
-        {
-          description: "First partnership established in European market",
-          timestamp: "1 day ago",
-          user: "Emma Davis"
-        }
-      ],
-      history: [
-        {
-          description: "Partnership milestone achieved",
-          timestamp: "1 day ago",
-          user: "Emma Davis"
-        }
-      ]
-    },
-    {
-      id: 4,
-      title: "Improve Team Productivity",
-      description: "Implement new tools and processes to increase team efficiency by 20%.",
-      owner: "David Kim",
-      quarter: "Q4 2024",
-      status: "completed",
-      priority: "low",
-      progress: 100,
-      keyResults: 3,
-      daysLeft: 90,
-      lastUpdated: "3 days ago",
-      keyResultsData: [
-        {
-          id: 401,
-          title: "Deploy new project management tool",
-          type: "Binary",
-          progress: 100,
-          currentValue: 1,
-          targetValue: 1
-        },
-        {
-          id: 402,
-          title: "Reduce average task completion time by 20%",
-          type: "Percentage",
-          progress: 100,
-          currentValue: 25,
-          targetValue: 20
-        }
-      ],
-      comments: [
-        {
-          id: 1,
-          author: "David Kim",
-          content: "All objectives completed successfully! Team productivity has increased by 25%.",
-          timestamp: "3 days ago"
-        }
-      ],
-      recentActivity: [
-        {
-          description: "Objective marked as completed",
-          timestamp: "3 days ago",
-          user: "David Kim"
-        }
-      ],
-      history: [
-        {
-          description: "Progress updated to 100% - objective completed",
-          timestamp: "3 days ago",
-          user: "David Kim"
-        }
-      ]
-    },
-    {
-      id: 5,
-      title: "Enhance Security Infrastructure",
-      description: "Strengthen cybersecurity measures and achieve SOC 2 compliance.",
-      owner: "Lisa Wang",
-      quarter: "Q4 2024",
-      status: "on-track",
-      priority: "high",
-      progress: 85,
-      keyResults: 4,
-      daysLeft: 25,
-      lastUpdated: "6 hours ago",
-      keyResultsData: [
-        {
-          id: 501,
-          title: "Complete SOC 2 audit",
-          type: "Binary",
-          progress: 90,
-          currentValue: 0.9,
-          targetValue: 1
-        },
-        {
-          id: 502,
-          title: "Implement multi-factor authentication",
-          type: "Percentage",
-          progress: 100,
-          currentValue: 100,
-          targetValue: 100
-        }
-      ],
-      comments: [],
-      recentActivity: [
-        {
-          description: "SOC 2 audit 90% complete",
-          timestamp: "6 hours ago",
-          user: "Lisa Wang"
-        }
-      ],
-      history: [
-        {
-          description: "MFA implementation completed",
-          timestamp: "1 week ago",
-          user: "Lisa Wang"
-        }
-      ]
-    }
-  ]);
+  const [objectives, setObjectives] = useState([]);
 
-  // Set initial selected objective
   useEffect(() => {
-    if (objectives?.length > 0 && !selectedObjective) {
-      setSelectedObjective(objectives?.[0]);
-    }
-  }, [objectives, selectedObjective]);
+    const fetchObjectives = async () => {
+      if (!currentOrg?.id) return;
+      
+      setIsLoading(true);
+      try {
+        const { data: objs, error } = await supabase
+          .from('objectives')
+          .select(`
+            *,
+            keyResults:key_results(*)
+          `)
+          .eq('organization_id', currentOrg.id)
+          .order('updated_at', { ascending: false });
+
+        if (error) throw error;
+
+        const formattedObjectives = objs.map(obj => ({
+          ...obj,
+          // Map DB fields to component state shape
+          keyResultsData: obj.keyResults?.map(kr => ({
+            ...kr,
+            currentValue: kr.current,
+            targetValue: kr.target,
+            type: kr.metric_type ? (kr.metric_type.charAt(0).toUpperCase() + kr.metric_type.slice(1)) : 'Percentage' // Capitalize for UI
+          })) || [],
+          // Mock missing fields for UI compatibility
+          daysLeft: obj.due_date ? Math.ceil((new Date(obj.due_date) - new Date()) / (1000 * 60 * 60 * 24)) : 30,
+          lastUpdated: new Date(obj.updated_at).toLocaleDateString(),
+          comments: [], // Mock comments for now
+          recentActivity: [], // Mock activity
+          history: [] // Mock history
+        }));
+
+        setObjectives(formattedObjectives);
+        
+        // Select first objective by default if none selected
+        if (formattedObjectives.length > 0 && !selectedObjective) {
+          setSelectedObjective(formattedObjectives[0]);
+        }
+      } catch (err) {
+        console.error('Error fetching objectives:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchObjectives();
+  }, [currentOrg?.id]);
 
   const handleObjectiveSelect = (objective) => {
     setSelectedObjective(objective);

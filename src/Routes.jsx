@@ -24,6 +24,8 @@ import ProjectModule from './pages/project-module';
 import FinanceModule from './pages/finance-module';
 import SalesModule from './pages/sales-module';
 import SupplyChainModule from './pages/supply-chain-module';
+import HRModule from './pages/hr-module';
+import ITModule from './pages/it-module';
 import ExecutiveDashboard from './pages/executive-dashboard';
 import AIAssistant from './pages/ai-assistant';
 import KnowledgeBase from './pages/knowledge-base';
@@ -75,6 +77,8 @@ const Routes = () => {
           <Route path="/finance-module" element={<RequireAuth><FinanceModule /></RequireAuth>} />
           <Route path="/sales-module" element={<RequireAuth><SalesModule /></RequireAuth>} />
           <Route path="/supply-chain-module" element={<RequireAuth><SupplyChainModule /></RequireAuth>} />
+          <Route path="/hr-module" element={<RequireAuth><HRModule /></RequireAuth>} />
+          <Route path="/it-module" element={<RequireAuth><ITModule /></RequireAuth>} />
           <Route path="/all-pages" element={<RequireAuth><AllPages /></RequireAuth>} />
           <Route path="/more" element={<RequireAuth><AllPages /></RequireAuth>} />
           <Route path="/diagnostic" element={<Diagnostic />} />

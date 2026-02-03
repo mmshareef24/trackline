@@ -3,7 +3,7 @@
  * Auth via Supabase JWT. Does not create departments; if absent, returns empty list.
  *
  * Query params:
- *   moduleKey: 'production'|'project'|'finance'|'sales'|'supply_chain' (required)
+ *   moduleKey: 'production'|'project'|'finance'|'sales'|'supply_chain'|'hr'|'it' (required)
  *   year?: number
  *   quarter?: 1|2|3|4
  *   status?: 'not_started'|'in_progress'|'at_risk'|'completed'|'archived'
@@ -18,6 +18,8 @@ const MODULE_TO_DEPARTMENT = {
   finance: 'Finance',
   sales: 'Sales',
   supply_chain: 'Supply Chain',
+  hr: 'Human Resources',
+  it: 'IT',
 };
 
 const VALID_STATUS = new Set(['not_started','in_progress','at_risk','completed','archived']);

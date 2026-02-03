@@ -94,6 +94,11 @@ const ObjectiveDetails = ({ objective, onEdit, onClose }) => {
               <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(objective?.priority)}`}>
                 {objective?.priority?.charAt(0)?.toUpperCase() + objective?.priority?.slice(1)} Priority
               </span>
+              {objective?.module && (
+                <span className="px-2 py-1 rounded-full text-xs font-medium border text-primary bg-primary/10 border-primary/20">
+                  {objective.module.charAt(0).toUpperCase() + objective.module.slice(1).replace(/_/g, ' ')}
+                </span>
+              )}
             </div>
             <p className="text-sm text-muted-foreground mb-4">{objective?.description}</p>
             

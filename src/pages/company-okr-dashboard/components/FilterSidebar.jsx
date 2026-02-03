@@ -46,7 +46,8 @@ const FilterSidebar = ({ isOpen, onClose, filters, onFiltersChange }) => {
     { value: 'Marketing', label: 'Marketing' },
     { value: 'Sales', label: 'Sales' },
     { value: 'Product', label: 'Product' },
-    { value: 'HR', label: 'Human Resources' }
+    { value: 'HR', label: 'Human Resources' },
+    { value: 'IT', label: 'IT' }
   ];
 
   const savedFilters = [

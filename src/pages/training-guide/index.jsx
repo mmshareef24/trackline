@@ -56,6 +56,8 @@ const TrainingGuide = () => {
                 <Button variant="outline" size="sm" onClick={() => (window.location.href='/finance-module')}>Finance</Button>
                 <Button variant="outline" size="sm" onClick={() => (window.location.href='/sales-module')}>Sales</Button>
                 <Button variant="outline" size="sm" onClick={() => (window.location.href='/supply-chain-module')}>Supply Chain</Button>
+                <Button variant="outline" size="sm" onClick={() => (window.location.href='/hr-module')}>HR</Button>
+                <Button variant="outline" size="sm" onClick={() => (window.location.href='/it-module')}>IT</Button>
               </>
             )}
           />

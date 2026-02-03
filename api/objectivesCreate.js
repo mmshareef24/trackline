@@ -10,7 +10,7 @@
  *   priority?: 'low'|'medium'|'high',
  *   year?: number,
  *   quarter?: 1|2|3|4,
- *   moduleKey: 'production'|'project'|'finance'|'sales'|'supply_chain'
+ *   moduleKey: 'production'|'project'|'finance'|'sales'|'supply_chain'|'hr'|'it'
  * }
  */
 import { createClient } from '@supabase/supabase-js';
@@ -21,6 +21,8 @@ const MODULE_TO_DEPARTMENT = {
   finance: 'Finance',
   sales: 'Sales',
   supply_chain: 'Supply Chain',
+  hr: 'Human Resources',
+  it: 'IT',
 };
 
 const VALID_STATUS = new Set(['not_started','in_progress','at_risk','completed','archived']);

@@ -9,6 +9,7 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
     title: '',
     description: '',
     category: '',
+    module: '',
     priority: 'medium',
     quarter: 'Q1 2025',
     owner: '',
@@ -63,6 +64,7 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
         title: objective?.title || '',
         description: objective?.description || '',
         category: objective?.category || '',
+        module: objective?.module || '',
         priority: objective?.priority || 'medium',
         quarter: objective?.quarter || 'Q1 2025',
         owner: objective?.owner || '',
@@ -128,6 +130,7 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
         if (!formData?.title?.trim()) newErrors.title = 'Title is required';
         if (!formData?.description?.trim()) newErrors.description = 'Description is required';
         if (!formData?.category) newErrors.category = 'Category is required';
+        if (!formData?.module) newErrors.module = 'Module is required';
         break;
       case 2:
         if (formData?.keyResults?.length === 0) newErrors.keyResults = 'At least one key result is required';
@@ -316,6 +319,25 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
               </div>
 
               <div className="border-t border-border pt-6">
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Business Module <span className="text-error">*</span>
+                  </label>
+                  <select
+                    value={formData?.module}
+                    onChange={(e) => handleInputChange('module', e?.target?.value)}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="">Select a module</option>
+                    {modules?.map((mod) => (
+                      <option key={mod.value} value={mod.value}>{mod.label}</option>
+                    ))}
+                  </select>
+                  {errors?.module && (
+                    <p className="text-error text-xs mt-1">{errors?.module}</p>
+                  )}
+                </div>
+
                 <Input
                   label="Objective Title"
                   type="text"

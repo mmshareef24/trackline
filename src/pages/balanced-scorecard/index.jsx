@@ -96,7 +96,11 @@ const BalancedScorecard = () => {
       }
 
       // Learning & Growth
-      if (includesAny(label, ['training', 'skill', 'engagement', 'certification'])) {
+      if (
+        moduleKey === 'hr' ||
+        includesAny(category, ['hr', 'human resources', 'workforce', 'recruitment', 'development']) ||
+        includesAny(label, ['training', 'skill', 'engagement', 'certification', 'headcount', 'turnover', 'hiring'])
+      ) {
         return 'learning';
       }
 
@@ -104,8 +108,9 @@ const BalancedScorecard = () => {
       if (
         moduleKey === 'production' ||
         moduleKey === 'project' ||
-        includesAny(category, ['production', 'quality', 'schedule', 'cost', 'operations']) ||
-        includesAny(label, ['cycle time', 'defect', 'downtime', 'throughput', 'deploy'])
+        moduleKey === 'it' ||
+        includesAny(category, ['production', 'quality', 'schedule', 'cost', 'operations', 'it', 'support']) ||
+        includesAny(label, ['cycle time', 'defect', 'downtime', 'throughput', 'deploy', 'uptime', 'ticket'])
       ) {
         return 'internal';
       }
@@ -129,6 +134,8 @@ const BalancedScorecard = () => {
         supplyChain: '/supply-chain-module',
         production: '/production-module',
         project: '/project-module',
+        hr: '/hr-module',
+        it: '/it-module',
         executive: '/executive-dashboard',
       };
       grouped[perspective].push({

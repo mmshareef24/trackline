@@ -108,6 +108,40 @@ const ObjectiveCreationAndManagement = () => {
       else if (objData.status === 'draft') dbStatus = 'not_started';
       else if (objData.status) dbStatus = objData.status;
 
+      // Map module to department
+      let departmentId = null;
+      if (objData.module) {
+        const MODULE_TO_DEPT_MAP = {
+          finance: 'Finance',
+          sales: 'Sales',
+          supply_chain: 'Supply Chain',
+          production: 'Production',
+          project: 'Projects',
+          hr: 'Human Resources',
+          it: 'IT',
+          executive: 'Executive'
+        };
+        
+        const deptName = MODULE_TO_DEPT_MAP[objData.module];
+        if (deptName) {
+          // Try to find existing department
+          const { data: dept } = await supabase
+            .from('departments')
+            .select('id')
+            .eq('organization_id', orgId)
+            .eq('name', deptName)
+            .maybeSingle();
+            
+          if (dept) {
+            departmentId = dept.id;
+          } else {
+            // Optional: Create department if it doesn't exist?
+            // For now, let's just log it. Creating might be too aggressive if permissions are restricted.
+            console.warn(`Department ${deptName} not found for module ${objData.module}`);
+          }
+        }
+      }
+
       const dbObjectiveData = {
         title: objData.title,
         description: objData.description,
@@ -115,6 +149,8 @@ const ObjectiveCreationAndManagement = () => {
         priority: objData.priority,
         organization_id: orgId,
         category: objData.category,
+        module: objData.module, // Save the raw module key
+        department_id: departmentId, // Save the resolved department ID
         owner_name: objData.owner,
         team_name: objData.team,
         quarter_name: objData.quarter,
