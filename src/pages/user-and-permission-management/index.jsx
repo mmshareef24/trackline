@@ -14,7 +14,7 @@ import UserStats from './components/UserStats';
 import AddUserModal from './components/AddUserModal';
 import RoleManagement from './components/RoleManagement';
 import { listRoles } from '../../services/roleService';
-import { createUser, listUsers, updateUserRole, updateUserStatus } from '../../services/userService';
+import { createUser, listUsers, updateUserRole, updateUserStatus, listDepartments } from '../../services/userService';
 
 const UserAndPermissionManagement = () => {
   const { isCollapsed } = useSidebar();
@@ -23,6 +23,7 @@ const UserAndPermissionManagement = () => {
   const isAdmin = (user?.role || '').toLowerCase() === 'admin';
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [activeTab, setActiveTab] = useState('users'); // users or roles
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -44,8 +45,14 @@ const UserAndPermissionManagement = () => {
         if (isMounted) setUsers(rows);
         
         if (currentOrg) {
-          const roleData = await listRoles(currentOrg.id).catch(() => []);
-          if (isMounted) setRoles(roleData);
+          const [roleData, deptData] = await Promise.all([
+            listRoles(currentOrg.id).catch(() => []),
+            listDepartments(currentOrg.id).catch(() => [])
+          ]);
+          if (isMounted) {
+            setRoles(roleData);
+            setDepartments(deptData);
+          }
         }
       } catch (e) {
         console.error('Failed to load data:', e);
@@ -200,6 +207,7 @@ const UserAndPermissionManagement = () => {
         name: newUser?.name,
         email: newUser?.email,
         role: newUser?.role,
+        role_id: newUser?.role_id, // Pass custom role ID
         status: newUser?.status,
         organization_id: currentOrg?.id
       });
@@ -210,6 +218,7 @@ const UserAndPermissionManagement = () => {
         email: created?.email,
         department: newUser?.department || '',
         role: newUser?.role || 'viewer',
+        role_id: newUser?.role_id,
         status: newUser?.status || 'pending',
         avatar: null,
         lastLogin: 'Never',
@@ -327,110 +336,144 @@ const UserAndPermissionManagement = () => {
             </div>
           }
 
-          {/* Filters */}
-          <UserFilters
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedDepartment={selectedDepartment}
-            onDepartmentChange={setSelectedDepartment}
-            selectedRole={selectedRole}
-            onRoleChange={setSelectedRole}
-            selectedStatus={selectedStatus}
-            onStatusChange={setSelectedStatus}
-            onClearFilters={handleClearFilters}
-            totalUsers={users?.length}
-            filteredUsers={filteredUsers?.length} />
-
-
-          {/* Bulk Actions */}
-          <BulkActions
-            selectedUsers={selectedUsers}
-            onBulkAction={handleBulkAction}
-            onClearSelection={() => setSelectedUsers([])} />
-
-
-          {/* Main Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            {/* User List */}
-            <div className="lg:col-span-2 space-y-4">
-              {/* List Header */}
-              <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    checked={selectedUsers?.length === filteredUsers?.length && filteredUsers?.length > 0}
-                    onChange={handleSelectAll}
-                    className="w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary focus:ring-2" />
-
-                  <span className="text-sm font-medium text-foreground">
-                    {selectedUsers?.length > 0 ?
-                    `${selectedUsers?.length} selected` :
-                    `${filteredUsers?.length} users`
-                    }
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button variant="ghost" size="icon" title="Refresh">
-                    <Icon name="RefreshCw" size={16} />
-                  </Button>
-                  <Button variant="ghost" size="icon" title="Export">
-                    <Icon name="Download" size={16} />
-                  </Button>
-                </div>
-              </div>
-
-              {/* User Cards */}
-              <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto">
-                {filteredUsers?.length > 0 ?
-                filteredUsers?.map((user) =>
-                <UserCard
-                  key={user?.id}
-                  user={user}
-                  isSelected={selectedUsers?.includes(user?.id)}
-                  onSelect={handleUserSelect}
-                  onEdit={() => handleUserDetail(user?.id)}
-                  onToggleStatus={() => handleToggleUserStatus(user)} />
-
-                ) :
-
-                <div className="text-center py-12">
-                    <Icon name="Users" size={48} className="text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-foreground mb-2">No Users Found</h3>
-                    <p className="text-muted-foreground mb-4">
-                      {searchQuery || selectedDepartment || selectedRole || selectedStatus ?
-                    'Try adjusting your filters to see more users' : 'Get started by adding your first user'
-                    }
-                    </p>
-                    {!searchQuery && !selectedDepartment && !selectedRole && !selectedStatus &&
-                  <Button
-                    onClick={() => setIsAddUserModalOpen(true)}
-                    iconName="UserPlus"
-                    iconPosition="left">
-
-                        Add First User
-                      </Button>
-                  }
-                  </div>
-                }
-              </div>
-            </div>
-
-            {/* Permission Panel */}
-            <div className="lg:col-span-3">
-              <PermissionPanel
-                selectedUser={selectedUser}
-                onUpdateUser={handleUpdateUser}
-                onClose={() => setSelectedUser(null)} />
-
-            </div>
+          {/* Tabs */}
+          <div className="flex border-b border-border mb-6">
+            <button
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'users'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+              onClick={() => setActiveTab('users')}
+            >
+              Users
+            </button>
+            <button
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'roles'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+              onClick={() => setActiveTab('roles')}
+            >
+              Roles & Permissions
+            </button>
           </div>
+
+          {activeTab === 'users' ? (
+            <>
+              {/* Filters */}
+              <UserFilters
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                selectedDepartment={selectedDepartment}
+                onDepartmentChange={setSelectedDepartment}
+                selectedRole={selectedRole}
+                onRoleChange={setSelectedRole}
+                selectedStatus={selectedStatus}
+                onStatusChange={setSelectedStatus}
+                onClearFilters={handleClearFilters}
+                totalUsers={users?.length}
+                filteredUsers={filteredUsers?.length} />
+
+
+              {/* Bulk Actions */}
+              <BulkActions
+                selectedUsers={selectedUsers}
+                onBulkAction={handleBulkAction}
+                onClearSelection={() => setSelectedUsers([])}
+                availableRoles={roles}
+                availableDepartments={departments} />
+
+
+              {/* Main Content */}
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                {/* User List */}
+                <div className="lg:col-span-2 space-y-4">
+                  {/* List Header */}
+                  <div className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers?.length === filteredUsers?.length && filteredUsers?.length > 0}
+                        onChange={handleSelectAll}
+                        className="w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary focus:ring-2" />
+
+                      <span className="text-sm font-medium text-foreground">
+                        {selectedUsers?.length > 0 ?
+                        `${selectedUsers?.length} selected` :
+                        `${filteredUsers?.length} users`
+                        }
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button variant="ghost" size="icon" title="Refresh">
+                        <Icon name="RefreshCw" size={16} />
+                      </Button>
+                      <Button variant="ghost" size="icon" title="Export">
+                        <Icon name="Download" size={16} />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* User Cards */}
+                  <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto">
+                    {filteredUsers?.length > 0 ?
+                    filteredUsers?.map((user) =>
+                    <UserCard
+                      key={user?.id}
+                      user={user}
+                      isSelected={selectedUsers?.includes(user?.id)}
+                      onSelect={handleUserSelect}
+                      onEdit={() => handleUserDetail(user?.id)}
+                      onToggleStatus={() => handleToggleUserStatus(user)} />
+
+                    ) :
+
+                    <div className="text-center py-12">
+                        <Icon name="Users" size={48} className="text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-foreground mb-2">No Users Found</h3>
+                        <p className="text-muted-foreground mb-4">
+                          {searchQuery || selectedDepartment || selectedRole || selectedStatus ?
+                        'Try adjusting your filters to see more users' : 'Get started by adding your first user'
+                        }
+                        </p>
+                        {!searchQuery && !selectedDepartment && !selectedRole && !selectedStatus &&
+                      <Button
+                        onClick={() => setIsAddUserModalOpen(true)}
+                        iconName="UserPlus"
+                        iconPosition="left">
+
+                            Add First User
+                          </Button>
+                      }
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                {/* Permission Panel */}
+                <div className="lg:col-span-3">
+                  <PermissionPanel
+                    selectedUser={selectedUser}
+                    onUpdateUser={handleUpdateUser}
+                    onClose={() => setSelectedUser(null)} />
+
+                </div>
+              </div>
+            </>
+          ) : (
+            <RoleManagement />
+          )}
         </div>
       </main>
       {/* Add User Modal */}
       <AddUserModal
         isOpen={isAddUserModalOpen}
         onClose={() => setIsAddUserModalOpen(false)}
-        onAddUser={handleAddUser} />
+        onAddUser={handleAddUser}
+        availableRoles={roles}
+        availableDepartments={departments} />
     </div>
   );
 

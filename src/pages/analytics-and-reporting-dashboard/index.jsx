@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Header from '../../components/ui/Header';
 import Sidebar from '../../components/ui/Sidebar';
 import { useSidebar } from '../../contexts/SidebarContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { getTeamsPerformance } from '../../services/analyticsService';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
 import MetricsCard from './components/MetricsCard';
@@ -14,6 +16,8 @@ import TrendAnalysis from './components/TrendAnalysis';
 
 const AnalyticsAndReportingDashboard = () => {
   const { isCollapsed } = useSidebar();
+  const { currentOrg } = useAuth();
+  const [teams, setTeams] = useState([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [filters, setFilters] = useState({
@@ -312,7 +316,7 @@ const AnalyticsAndReportingDashboard = () => {
 
           {/* Team Performance Grid */}
           <div className="mb-8">
-            <TeamPerformanceGrid teams={teamsData} />
+            <TeamPerformanceGrid teams={teams} />
           </div>
 
           {/* Quick Actions */}

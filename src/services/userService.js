@@ -168,12 +168,33 @@ export const updateUserStatus = async (id, status) => {
   return data;
 };
 
+export const listDepartments = async (orgId) => {
+  if (!supabase) throw new Error('Supabase not configured');
+  let query = supabase.from('departments').select('id, name').order('name');
+  if (orgId) {
+    query = query.eq('organization_id', orgId);
+  }
+  const { data, error } = await query;
+  if (error) throw error;
+  return data;
+};
+
 export const updateUserRole = async (id, uiRole) => {
   if (!supabase) throw new Error('Supabase not configured');
-  const role = mapRole(uiRole);
+  
+  let role;
+  let role_id = null;
+
+  if (String(uiRole).startsWith('custom:')) {
+    role = 'contributor';
+    role_id = uiRole.split(':')[1];
+  } else {
+    role = mapRole(uiRole);
+  }
+
   const { data, error } = await supabase
     .from('users')
-    .update({ role })
+    .update({ role, role_id })
     .eq('id', id)
     .select()
     .single();

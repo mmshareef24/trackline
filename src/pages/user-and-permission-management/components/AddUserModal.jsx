@@ -5,7 +5,7 @@ import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import { Checkbox } from '../../../components/ui/Checkbox';
 
-const AddUserModal = ({ isOpen, onClose, onAddUser, availableRoles = [] }) => {
+const AddUserModal = ({ isOpen, onClose, onAddUser, availableDepartments = [], availableRoles = [] }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -19,14 +19,10 @@ const AddUserModal = ({ isOpen, onClose, onAddUser, availableRoles = [] }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const departmentOptions = [
-    { value: 'engineering', label: 'Engineering' },
-    { value: 'marketing', label: 'Marketing' },
-    { value: 'sales', label: 'Sales' },
-    { value: 'hr', label: 'Human Resources' },
-    { value: 'finance', label: 'Finance' },
-    { value: 'operations', label: 'Operations' }
-  ];
+  const departmentOptions = availableDepartments.map(d => ({
+    value: d.name,
+    label: d.name
+  }));
 
   // Merge standard roles with dynamic roles
   const standardRoles = [

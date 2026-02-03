@@ -1,7 +1,7 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
 
-const UserStats = ({ users }) => {
+const UserStats = ({ users, departments = [] }) => {
   const stats = {
     total: users?.length,
     active: users?.filter(u => u?.status === 'active')?.length,
@@ -123,15 +123,22 @@ const UserStats = ({ users }) => {
         <h3 className="text-lg font-medium text-foreground mb-4">Department Breakdown</h3>
         <div className="bg-card border border-border rounded-lg p-4">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {['Engineering', 'Marketing', 'Sales', 'HR', 'Finance', 'Operations']?.map((dept, index) => {
-              const deptUsers = users?.filter(u => u?.department?.toLowerCase() === dept?.toLowerCase()?.replace(' ', ''));
-              return (
-                <div key={index} className="text-center">
-                  <p className="text-sm text-muted-foreground">{dept}</p>
-                  <p className="text-xl font-semibold text-foreground">{deptUsers?.length}</p>
-                </div>
-              );
-            })}
+            {departments.length > 0 ? (
+              departments.map((dept, index) => {
+                // Match user department name with department name (case insensitive)
+                const deptUsers = users?.filter(u => u?.department?.toLowerCase() === dept?.name?.toLowerCase());
+                return (
+                  <div key={dept.id || index} className="text-center">
+                    <p className="text-sm text-muted-foreground truncate px-1" title={dept.name}>{dept.name}</p>
+                    <p className="text-xl font-semibold text-foreground">{deptUsers?.length || 0}</p>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="col-span-full text-center text-muted-foreground text-sm py-2">
+                No departments found.
+              </div>
+            )}
           </div>
         </div>
       </div>

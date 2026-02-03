@@ -3,7 +3,7 @@ import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Select from '../../../components/ui/Select';
 
-const BulkActions = ({ selectedUsers, onBulkAction, onClearSelection }) => {
+const BulkActions = ({ selectedUsers, onBulkAction, onClearSelection, availableRoles = [], availableDepartments = [] }) => {
   const [bulkActionType, setBulkActionType] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -24,17 +24,14 @@ const BulkActions = ({ selectedUsers, onBulkAction, onClearSelection }) => {
     { value: 'admin', label: 'Administrator' },
     { value: 'manager', label: 'Manager' },
     { value: 'editor', label: 'Editor' },
-    { value: 'viewer', label: 'Viewer' }
+    { value: 'viewer', label: 'Viewer' },
+    ...availableRoles.map(r => ({ value: `custom:${r.id}`, label: r.name }))
   ];
 
-  const departmentOptions = [
-    { value: 'engineering', label: 'Engineering' },
-    { value: 'marketing', label: 'Marketing' },
-    { value: 'sales', label: 'Sales' },
-    { value: 'hr', label: 'Human Resources' },
-    { value: 'finance', label: 'Finance' },
-    { value: 'operations', label: 'Operations' }
-  ];
+  const departmentOptions = availableDepartments.map(d => ({
+    value: d.name,
+    label: d.name
+  }));
 
   const handleBulkAction = async () => {
     if (!bulkActionType || selectedUsers?.length === 0) return;

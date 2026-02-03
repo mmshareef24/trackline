@@ -5,6 +5,7 @@ import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 
 const UserFilters = ({ 
+  departments = [],
   searchQuery, 
   onSearchChange, 
   selectedDepartment, 
@@ -19,12 +20,7 @@ const UserFilters = ({
 }) => {
   const departmentOptions = [
     { value: '', label: 'All Departments' },
-    { value: 'engineering', label: 'Engineering' },
-    { value: 'marketing', label: 'Marketing' },
-    { value: 'sales', label: 'Sales' },
-    { value: 'hr', label: 'Human Resources' },
-    { value: 'finance', label: 'Finance' },
-    { value: 'operations', label: 'Operations' }
+    ...departments.map(d => ({ value: d.name, label: d.name }))
   ];
 
   const roleOptions = [

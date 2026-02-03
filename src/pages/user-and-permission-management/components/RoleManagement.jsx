@@ -6,44 +6,7 @@ import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import { Checkbox } from '../../../components/ui/Checkbox';
 import Icon from '../../../components/AppIcon';
-
-const PERMISSION_MODULES = [
-  {
-    key: 'objectives',
-    label: 'Objectives & Key Results',
-    permissions: [
-      { key: 'view_objectives', label: 'View Objectives' },
-      { key: 'create_objectives', label: 'Create Objectives' },
-      { key: 'edit_objectives', label: 'Edit Objectives' },
-      { key: 'delete_objectives', label: 'Delete Objectives' }
-    ]
-  },
-  {
-    key: 'kpis',
-    label: 'KPIs',
-    permissions: [
-      { key: 'view_kpis', label: 'View KPIs' },
-      { key: 'manage_kpis', label: 'Manage KPIs' },
-      { key: 'update_kpi_values', label: 'Update Values' }
-    ]
-  },
-  {
-    key: 'initiatives',
-    label: 'Initiatives',
-    permissions: [
-      { key: 'view_initiatives', label: 'View Initiatives' },
-      { key: 'manage_initiatives', label: 'Manage Initiatives' }
-    ]
-  },
-  {
-    key: 'users',
-    label: 'User Management',
-    permissions: [
-      { key: 'view_users', label: 'View Users' },
-      { key: 'manage_users', label: 'Manage Users & Roles' }
-    ]
-  }
-];
+import { PERMISSION_MODULES } from '../../../config/permissionsConfig';
 
 const RoleManagement = () => {
   const { currentOrg } = useOrganization();

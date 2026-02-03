@@ -655,12 +655,12 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
                   className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <option value="">Select team (optional)</option>
-                  {availableDepartments?.length > 0 ? (
+                  {Array.isArray(availableDepartments) && availableDepartments.length > 0 ? (
                     availableDepartments.map((dept) => (
                       <option key={dept.id} value={dept.name}>{dept.name}</option>
                     ))
                   ) : (
-                    modules.map((module) => (
+                    Array.isArray(modules) && modules.map((module) => (
                       <option key={module.value} value={module.label}>{module.label}</option>
                     ))
                   )}
