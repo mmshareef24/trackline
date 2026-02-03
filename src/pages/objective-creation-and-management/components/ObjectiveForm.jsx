@@ -660,7 +660,9 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
                       <option key={dept.id} value={dept.name}>{dept.name}</option>
                     ))
                   ) : (
-                    <option value="" disabled>No teams found</option>
+                    modules.map((module) => (
+                      <option key={module.value} value={module.label}>{module.label}</option>
+                    ))
                   )}
                 </select>
               </div>
