@@ -44,7 +44,6 @@
     "dotenv": "^16.0.1",
     "framer-motion": "^10.16.4",
     "lucide-react": "^0.484.0",
-    "next": "^15.4.6",
     "pg": "^8.16.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -61,7 +60,7 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "vite build --sourcemap",
+    "build": "npx prisma generate && vite build --sourcemap",
     "serve": "vite preview",
     "prisma:init": "prisma init",
     "prisma:pull": "prisma db pull",
