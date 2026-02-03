@@ -6,7 +6,7 @@ import { Checkbox } from '../../../components/ui/Checkbox';
 import { useOrganization } from '../../../contexts/OrganizationContext';
 
 const GeneralSettings = () => {
-  const { currentOrg, updateOrganization } = useOrganization();
+  const { currentOrg, updateOrganization, isLoading: isOrgLoading } = useOrganization();
   const [settings, setSettings] = useState({
     companyName: "TechCorp Solutions",
     companyLogo: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=200&fit=crop",
@@ -22,7 +22,7 @@ const GeneralSettings = () => {
     maintenanceMode: false
   });
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (currentOrg) {
@@ -68,9 +68,12 @@ const GeneralSettings = () => {
   };
 
   const handleSave = async () => {
-    if (!currentOrg) return;
+    if (!currentOrg) {
+      alert('Error: No organization selected or loaded. Please check your connection or select an organization.');
+      return;
+    }
     
-    setIsLoading(true);
+    setIsSaving(true);
     
     // Separate name from other settings
     const { companyName, ...otherSettings } = settings;
@@ -80,9 +83,22 @@ const GeneralSettings = () => {
       settings: otherSettings
     };
 
-    const { success, error } = await updateOrganization(currentOrg.id, updates);
+    let { success, error } = await updateOrganization(currentOrg.id, updates);
     
-    setIsLoading(false);
+    // Fallback: If failed due to missing settings column, try saving just the name
+    if (!success && error.message && error.message.includes('settings')) {
+       console.warn('Settings column missing, attempting to save name only.');
+       const nameUpdate = { name: companyName };
+       const retryResult = await updateOrganization(currentOrg.id, nameUpdate);
+       
+       if (retryResult.success) {
+         setIsSaving(false);
+         alert('Company name saved successfully! However, system preferences could not be saved because the database schema is outdated (missing settings column). Please contact IT to run the migration.');
+         return;
+       }
+    }
+    
+    setIsSaving(false);
     
     if (success) {
       alert('General settings saved successfully!');
@@ -277,11 +293,12 @@ const GeneralSettings = () => {
           <Button
             variant="default"
             onClick={handleSave}
-            loading={isLoading}
+            loading={isSaving || isOrgLoading}
+            disabled={isSaving || isOrgLoading}
             iconName="Save"
             iconPosition="left"
           >
-            Save Changes
+            {isOrgLoading ? 'Loading...' : 'Save Changes'}
           </Button>
         </div>
       </div>
