@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
-import { useOrganization } from '../../../../contexts/OrganizationContext';
-import { supabase } from '../../../../utils/supabaseClient';
+import { useOrganization } from '../../../contexts/OrganizationContext';
+import { supabase } from '../../../utils/supabaseClient';
 
 const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'create' }) => {
   const { currentOrg, strategicThemes } = useOrganization();
