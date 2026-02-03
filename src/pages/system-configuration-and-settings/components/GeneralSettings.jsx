@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import { Checkbox } from '../../../components/ui/Checkbox';
+import { useOrganization } from '../../../contexts/OrganizationContext';
 
 const GeneralSettings = () => {
+  const { currentOrg, updateOrganization } = useOrganization();
   const [settings, setSettings] = useState({
     companyName: "TechCorp Solutions",
     companyLogo: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=200&fit=crop",
@@ -21,6 +23,18 @@ const GeneralSettings = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (currentOrg) {
+      // Merge saved settings with defaults
+      setSettings(prev => ({
+        ...prev,
+        companyName: currentOrg.name || prev.companyName,
+        // If settings column exists and has data, use it, otherwise use defaults
+        ...(currentOrg.settings || {})
+      }));
+    }
+  }, [currentOrg]);
 
   const timezones = [
     { value: "America/New_York", label: "Eastern Time (ET)" },
@@ -54,11 +68,27 @@ const GeneralSettings = () => {
   };
 
   const handleSave = async () => {
+    if (!currentOrg) return;
+    
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Separate name from other settings
+    const { companyName, ...otherSettings } = settings;
+    
+    const updates = {
+      name: companyName,
+      settings: otherSettings
+    };
+
+    const { success, error } = await updateOrganization(currentOrg.id, updates);
+    
     setIsLoading(false);
-    console.log('General settings saved:', settings);
+    
+    if (success) {
+      alert('General settings saved successfully!');
+    } else {
+      alert('Failed to save settings: ' + error.message);
+    }
   };
 
   const handleReset = () => {
