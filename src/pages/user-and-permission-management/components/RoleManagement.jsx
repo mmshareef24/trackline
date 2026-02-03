@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { useOrganization } from '../../../../contexts/OrganizationContext';
-import { listRoles, createRole, deleteRole } from '../../../../services/roleService';
-import Button from '../../../../components/ui/Button';
-import Input from '../../../../components/ui/Input';
-import { Checkbox } from '../../../../components/ui/Checkbox';
-import Icon from '../../../../components/AppIcon';
+import { useOrganization } from '../../../contexts/OrganizationContext';
+import { listRoles, createRole, deleteRole } from '../../../services/roleService';
+import Button from '../../../components/ui/Button';
+import Input from '../../../components/ui/Input';
+import { Checkbox } from '../../../components/ui/Checkbox';
+import Icon from '../../../components/AppIcon';
 
 const PERMISSION_MODULES = [
   {
