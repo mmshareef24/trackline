@@ -5,12 +5,13 @@ import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import { Checkbox } from '../../../components/ui/Checkbox';
 
-const AddUserModal = ({ isOpen, onClose, onAddUser }) => {
+const AddUserModal = ({ isOpen, onClose, onAddUser, availableRoles = [] }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     department: '',
     role: '',
+    role_id: '', // Store the custom role ID
     status: 'pending',
     sendInvitation: true,
     permissions: {}
@@ -27,12 +28,28 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }) => {
     { value: 'operations', label: 'Operations' }
   ];
 
-  const roleOptions = [
+  // Merge standard roles with dynamic roles
+  const standardRoles = [
     { value: 'admin', label: 'Administrator' },
     { value: 'manager', label: 'Manager' },
     { value: 'editor', label: 'Editor' },
     { value: 'viewer', label: 'Viewer' }
   ];
+
+  const roleOptions = [
+    ...standardRoles,
+    ...(availableRoles || []).map(r => ({ value: `custom:${r.id}`, label: r.name, isCustom: true }))
+  ];
+
+  const handleRoleChange = (e) => {
+    const value = e.target.value;
+    if (value.startsWith('custom:')) {
+      const roleId = value.split(':')[1];
+      setFormData(prev => ({ ...prev, role: 'contributor', role_id: roleId }));
+    } else {
+      setFormData(prev => ({ ...prev, role: value, role_id: null }));
+    }
+  };
 
   const statusOptions = [
     { value: 'active', label: 'Active' },
@@ -57,7 +74,7 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }) => {
       newErrors.department = 'Department is required';
     }
     
-    if (!formData?.role) {
+    if (!formData?.role && !formData?.role_id) {
       newErrors.role = 'Role is required';
     }
 
@@ -75,11 +92,9 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }) => {
     setIsSubmitting(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // API call is handled by parent
       
       const newUser = {
-        id: Date.now(),
         ...formData,
         avatar: null,
         lastLogin: 'Never',
@@ -93,8 +108,8 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }) => {
         ]
       };
       
-      onAddUser(newUser);
-      handleClose();
+      await onAddUser(newUser);
+      // Don't close here, parent does it or we do it if success
     } catch (error) {
       console.error('Failed to add user:', error);
     } finally {
@@ -184,8 +199,15 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }) => {
                 label="Role"
                 placeholder="Select role"
                 options={roleOptions}
-                value={formData?.role}
-                onChange={(value) => setFormData(prev => ({ ...prev, role: value }))}
+                value={formData?.role_id ? `custom:${formData.role_id}` : formData?.role}
+                onChange={(value) => {
+                  if (value.startsWith('custom:')) {
+                    const roleId = value.split(':')[1];
+                    setFormData(prev => ({ ...prev, role: 'contributor', role_id: roleId }));
+                  } else {
+                    setFormData(prev => ({ ...prev, role: value, role_id: null }));
+                  }
+                }}
                 error={errors?.role}
                 required
               />
@@ -212,19 +234,26 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }) => {
           </div>
 
           {/* Role Description */}
-          {formData?.role && (
+          {(formData?.role || formData?.role_id) && (
             <div className="p-4 bg-muted/20 rounded-lg border-l-4 border-primary">
               <div className="flex items-start space-x-2">
                 <Icon name="Info" size={16} className="text-primary mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    {roleOptions?.find(r => r?.value === formData?.role)?.label} Role
+                    {formData.role_id 
+                      ? availableRoles.find(r => r.id === formData.role_id)?.name 
+                      : roleOptions?.find(r => r?.value === formData?.role)?.label} Role
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {formData?.role === 'admin' && 'Full system access with user management capabilities'}
-                    {formData?.role === 'manager' && 'Team management with objective creation and approval rights'}
-                    {formData?.role === 'editor' && 'Can create and edit objectives with progress tracking'}
-                    {formData?.role === 'viewer' && 'Read-only access to objectives and progress reports'}
+                    {formData.role_id && availableRoles.find(r => r.id === formData.role_id)?.description}
+                    {!formData.role_id && (
+                      <>
+                        {formData?.role === 'admin' && 'Full system access with user management capabilities'}
+                        {formData?.role === 'manager' && 'Team management with objective creation and approval rights'}
+                        {formData?.role === 'editor' && 'Can create and edit objectives with progress tracking'}
+                        {formData?.role === 'viewer' && 'Read-only access to objectives and progress reports'}
+                      </>
+                    )}
                   </p>
                 </div>
               </div>

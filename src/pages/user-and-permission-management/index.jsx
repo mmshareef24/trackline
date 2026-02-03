@@ -12,6 +12,8 @@ import UserFilters from './components/UserFilters';
 import BulkActions from './components/BulkActions';
 import UserStats from './components/UserStats';
 import AddUserModal from './components/AddUserModal';
+import RoleManagement from './components/RoleManagement';
+import { listRoles } from '../../services/roleService';
 import { createUser, listUsers, updateUserRole, updateUserStatus } from '../../services/userService';
 
 const UserAndPermissionManagement = () => {
@@ -20,6 +22,8 @@ const UserAndPermissionManagement = () => {
   const { currentOrg } = useOrganization();
   const isAdmin = (user?.role || '').toLowerCase() === 'admin';
   const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [activeTab, setActiveTab] = useState('users'); // users or roles
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,19 +35,24 @@ const UserAndPermissionManagement = () => {
   const [viewMode, setViewMode] = useState('grid'); // grid or list
   const demoCleanupEnabled = import.meta.env.VITE_ENABLE_DEMO_CLEANUP === 'true';
 
-  // Load users from Supabase
+  // Load users and roles from Supabase
   useEffect(() => {
     let isMounted = true;
     (async () => {
       try {
         const rows = await listUsers();
         if (isMounted) setUsers(rows);
+        
+        if (currentOrg) {
+          const roleData = await listRoles(currentOrg.id).catch(() => []);
+          if (isMounted) setRoles(roleData);
+        }
       } catch (e) {
-        console.error('Failed to load users:', e);
+        console.error('Failed to load data:', e);
       }
     })();
     return () => { isMounted = false; };
-  }, []);
+  }, [currentOrg]);
 
   const refreshUsers = async () => {
     try {

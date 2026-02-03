@@ -38,15 +38,27 @@ export const getDefaultOrganizationId = async () => {
 };
 
 // Create a user record in the application users table
-export const createUser = async ({ name, email, role, status, organization_id }) => {
+export const createUser = async ({ name, email, role, status, organization_id, role_id }) => {
   if (!supabase) throw new Error('Supabase not configured');
   const finalOrgId = organization_id || await getDefaultOrganizationId();
   const is_active = String(status).toLowerCase() === 'active';
   const dbRole = mapRole(role);
 
+  const payload = { 
+    organization_id: finalOrgId, 
+    email, 
+    name, 
+    role: dbRole, 
+    is_active 
+  };
+
+  if (role_id) {
+    payload.role_id = role_id;
+  }
+
   const { data, error } = await supabase
     .from('users')
-    .insert([{ organization_id: finalOrgId, email, name, role: dbRole, is_active }])
+    .insert([payload])
     .select()
     .single();
   if (error) throw error;
@@ -96,20 +108,25 @@ export { mapRole };
 export const listUsers = async () => {
   if (!supabase) throw new Error('Supabase not configured');
 
-  const [{ data: users, error: usersErr }, { data: departments, error: deptErr }] = await Promise.all([
+  const [{ data: users, error: usersErr }, { data: departments, error: deptErr }, { data: roles, error: rolesErr }] = await Promise.all([
     supabase
       .from('users')
-      .select('id,email,name,role,is_active,department_id,created_at')
+      .select('id,email,name,role,is_active,department_id,created_at,role_id')
       .order('created_at', { ascending: true }),
     supabase
       .from('departments')
       .select('id,name'),
+    supabase
+      .from('roles')
+      .select('id,name')
   ]);
 
   if (usersErr) throw usersErr;
   if (deptErr) throw deptErr;
+  // Ignore rolesErr as the table might not exist yet if migration failed
 
   const deptMap = new Map((departments || []).map((d) => [d.id, d.name]));
+  const roleMap = new Map((roles || []).map((r) => [r.id, r.name]));
 
   const toUiRole = (dbRole) => {
     const r = String(dbRole || '').toLowerCase();
@@ -118,18 +135,24 @@ export const listUsers = async () => {
     return 'viewer';
   };
 
-  return (users || []).map((u) => ({
-    id: u.id,
-    name: u.name,
-    email: u.email,
-    department: deptMap.get(u.department_id) || '',
-    role: toUiRole(u.role),
-    status: u.is_active ? 'active' : 'inactive',
-    avatar: null,
-    lastLogin: 'Never',
-    permissions: {},
-    activityLog: [],
-  }));
+  return (users || []).map((u) => {
+    // If user has a custom role_id, use that name, otherwise fallback to standard enum role
+    const customRoleName = u.role_id ? roleMap.get(u.role_id) : null;
+    
+    return {
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      department: deptMap.get(u.department_id) || '',
+      role: customRoleName || toUiRole(u.role),
+      role_id: u.role_id, // Expose for UI
+      status: u.is_active ? 'active' : 'inactive',
+      avatar: null,
+      lastLogin: 'Never',
+      permissions: {},
+      activityLog: [],
+    };
+  });
 };
 
 export const updateUserStatus = async (id, status) => {
