@@ -245,6 +245,7 @@ const TeamCheckinsAndCollaboration = () => {
               <CollaborationPanel
                 selectedCheckin={selectedCheckin}
                 onAddComment={handleAddComment}
+                teamMembers={teamMembers}
                 onMentionUser={handleMentionUser}
                 onStartThread={handleStartThread}
               />

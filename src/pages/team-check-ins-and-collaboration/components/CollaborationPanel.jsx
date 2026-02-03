@@ -3,83 +3,14 @@ import Icon from '../../../components/AppIcon';
 import Image from '../../../components/AppImage';
 import Button from '../../../components/ui/Button';
 
-const CollaborationPanel = ({ selectedCheckin, onAddComment, onMentionUser, onStartThread }) => {
+const CollaborationPanel = ({ selectedCheckin, onAddComment, onMentionUser, onStartThread, teamMembers = [] }) => {
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('comments');
   const [showMentions, setShowMentions] = useState(false);
 
-  const teamMembers = [
-  { id: 1, name: 'Sarah Johnson', username: 'sarah.j', avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150' },
-  { id: 2, name: 'Mike Chen', username: 'mike.c', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
-  { id: 3, name: 'Emily Davis', username: 'emily.d', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150' },
-  { id: 4, name: 'Alex Rodriguez', username: 'alex.r', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150' }];
-
-
-  const mockComments = [
-  {
-    id: 1,
-    author: { name: 'Sarah Johnson', avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150' },
-    content: 'Great progress on the API integration! The performance improvements are really showing.',
-    timestamp: '2 hours ago',
-    replies: [
-    {
-      id: 11,
-      author: { name: 'Mike Chen', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150' },
-      content: 'Thanks! The caching layer made a huge difference.',
-      timestamp: '1 hour ago'
-    }]
-
-  },
-  {
-    id: 2,
-    author: { name: 'Emily Davis', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150' },
-    content: 'Regarding the blocker with the third-party service - I had a similar issue last month. Happy to share the workaround I used.',
-    timestamp: '4 hours ago',
-    replies: []
-  },
-  {
-    id: 3,
-    author: { name: 'Alex Rodriguez', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150' },
-    content: 'The workload seems high this week. Do you need any support with the testing phase?',
-    timestamp: '1 day ago',
-    replies: []
-  }];
-
-
-  const mockActivity = [
-  {
-    id: 1,
-    type: 'comment',
-    user: 'Sarah Johnson',
-    action: 'commented on check-in',
-    timestamp: '2 hours ago',
-    icon: 'MessageSquare'
-  },
-  {
-    id: 2,
-    type: 'approval',
-    user: 'Team Lead',
-    action: 'approved check-in',
-    timestamp: '3 hours ago',
-    icon: 'CheckCircle'
-  },
-  {
-    id: 3,
-    type: 'mention',
-    user: 'Mike Chen',
-    action: 'mentioned you in a comment',
-    timestamp: '5 hours ago',
-    icon: 'AtSign'
-  },
-  {
-    id: 4,
-    type: 'edit',
-    user: 'You',
-    action: 'updated check-in',
-    timestamp: '1 day ago',
-    icon: 'Edit'
-  }];
+  const mockComments = [];
+  const mockActivity = [];
 
 
   const handleSubmitComment = async (e) => {
