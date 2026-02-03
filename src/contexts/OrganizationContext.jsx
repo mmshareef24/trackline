@@ -8,12 +8,44 @@ export const useOrganization = () => useContext(OrganizationContext);
 export const OrganizationProvider = ({ children }) => {
   const [currentOrg, setCurrentOrg] = useState(null);
   const [organizations, setOrganizations] = useState([]);
+  const [strategicThemes, setStrategicThemes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load orgs on mount
   useEffect(() => {
     fetchOrganizations();
   }, []);
+
+  // Fetch strategic themes when current org changes
+  useEffect(() => {
+    if (currentOrg?.id) {
+      fetchStrategicThemes(currentOrg.id);
+    } else {
+      setStrategicThemes([]);
+    }
+  }, [currentOrg?.id]);
+
+  const fetchStrategicThemes = async (orgId) => {
+    try {
+      const { data, error } = await supabase
+        .from('strategic_themes')
+        .select('*')
+        .eq('organization_id', orgId)
+        .order('created_at', { ascending: true });
+        
+      if (error) {
+        // If table doesn't exist yet (migration pending), ignore error
+        if (error.code === '42P01') {
+          console.warn('Strategic themes table not found');
+          return;
+        }
+        throw error;
+      }
+      setStrategicThemes(data || []);
+    } catch (err) {
+      console.error('Error fetching strategic themes:', err);
+    }
+  };
 
   const fetchOrganizations = async () => {
     setIsLoading(true);
@@ -76,22 +108,83 @@ export const OrganizationProvider = ({ children }) => {
     }
   };
 
-  const createOrganization = async (name) => {
+  const createOrganization = async (name, parentId = null, type = 'company') => {
     try {
+      const payload = { name, type };
+      if (parentId) payload.parent_id = parentId;
+
       const { data, error } = await supabase
         .from('organizations')
-        .insert({ name })
+        .insert(payload)
         .select()
         .single();
 
       if (error) throw error;
 
       setOrganizations(prev => [...prev, data]);
-      // Switch to new org? Optional.
-      // switchOrganization(data.id);
       return { success: true, data };
     } catch (error) {
       console.error('Error creating organization:', error);
+      return { success: false, error };
+    }
+  };
+
+  const updateOrganization = async (orgId, updates) => {
+    try {
+      const { data, error } = await supabase
+        .from('organizations')
+        .update(updates)
+        .eq('id', orgId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setOrganizations(prev => prev.map(org => org.id === orgId ? data : org));
+      if (currentOrg?.id === orgId) {
+        setCurrentOrg(data);
+      }
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error updating organization:', error);
+      return { success: false, error };
+    }
+  };
+
+  const addStrategicTheme = async (title, description) => {
+    if (!currentOrg?.id) return;
+    try {
+      const { data, error } = await supabase
+        .from('strategic_themes')
+        .insert({
+          organization_id: currentOrg.id,
+          title,
+          description
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setStrategicThemes(prev => [...prev, data]);
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error adding strategic theme:', error);
+      return { success: false, error };
+    }
+  };
+
+  const deleteStrategicTheme = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('strategic_themes')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      setStrategicThemes(prev => prev.filter(t => t.id !== id));
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting strategic theme:', error);
       return { success: false, error };
     }
   };
@@ -100,9 +193,13 @@ export const OrganizationProvider = ({ children }) => {
     <OrganizationContext.Provider value={{
       currentOrg,
       organizations,
+      strategicThemes,
       isLoading,
       switchOrganization,
       createOrganization,
+      updateOrganization,
+      addStrategicTheme,
+      deleteStrategicTheme,
       refreshOrganizations: fetchOrganizations
     }}>
       {children}

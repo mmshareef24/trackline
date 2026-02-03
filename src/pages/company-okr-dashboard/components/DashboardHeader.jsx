@@ -88,6 +88,19 @@ const DashboardHeader = ({ onQuarterChange, onSearchChange, onFilterToggle, onCr
       {/* Controls Row */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4">
+          {/* View Mode Selector (Roll-up) */}
+          {hasChildrenOrgs && (
+            <div className="flex items-center space-x-2">
+              <Icon name="Layers" size={20} className="text-muted-foreground" />
+              <Select
+                options={viewOptions}
+                value={viewMode}
+                onChange={onViewModeChange}
+                className="w-32 sm:w-40"
+              />
+            </div>
+          )}
+
           {/* Quarter Selector */}
           <div className="flex items-center space-x-2">
             <Icon name="Calendar" size={20} className="text-muted-foreground" />

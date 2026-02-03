@@ -220,6 +220,7 @@ const ObjectiveCreationAndManagement = () => {
         owner_id: ownerId,
         team_id: teamId,
         quarter_id: quarterId,
+        strategic_theme_id: objData.strategicThemeId || null,
         updated_at: new Date().toISOString()
       };
 

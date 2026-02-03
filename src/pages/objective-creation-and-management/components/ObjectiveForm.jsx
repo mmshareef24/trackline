@@ -2,14 +2,30 @@ import React, { useState, useEffect } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
+import { useOrganization } from '../../../../contexts/OrganizationContext';
+import { supabase } from '../../../../utils/supabaseClient';
 
 const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'create' }) => {
+  const { currentOrg, strategicThemes } = useOrganization();
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [availableDepartments, setAvailableDepartments] = useState([]);
+  const [modules, setModules] = useState([
+    { value: 'finance', label: 'Finance' },
+    { value: 'sales', label: 'Sales' },
+    { value: 'marketing', label: 'Marketing' },
+    { value: 'hr', label: 'Human Resources' },
+    { value: 'operations', label: 'Operations' },
+    { value: 'product', label: 'Product' },
+    { value: 'engineering', label: 'Engineering' }
+  ]);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: '',
     module: '',
+    strategicThemeId: '',
     priority: 'medium',
     quarter: 'Q1 2025',
     owner: '',
@@ -51,12 +67,28 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
     { id: 'team', name: 'Team Development Template', description: 'Team growth and skill development' }
   ];
 
-  const teamMembers = [
-    'John Doe', 'Sarah Johnson', 'Mike Chen', 'Emily Davis', 
-    'Alex Rodriguez', 'Lisa Wang', 'David Brown', 'Anna Smith'
-  ];
-
   const quarters = ['Q1 2025', 'Q2 2025', 'Q3 2025', 'Q4 2025'];
+
+  useEffect(() => {
+    if (currentOrg?.id) {
+      const fetchData = async () => {
+        // Fetch users
+        const { data: users } = await supabase
+          .from('users')
+          .select('id, name, email')
+          .eq('organization_id', currentOrg.id);
+        if (users) setAvailableUsers(users);
+
+        // Fetch departments (teams)
+        const { data: depts } = await supabase
+          .from('departments')
+          .select('id, name')
+          .eq('organization_id', currentOrg.id);
+        if (depts) setAvailableDepartments(depts);
+      };
+      fetchData();
+    }
+  }, [currentOrg]);
 
   useEffect(() => {
     if (objective && mode === 'edit') {
@@ -65,6 +97,7 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
         description: objective?.description || '',
         category: objective?.category || '',
         module: objective?.module || '',
+        strategicThemeId: objective?.strategic_theme_id || objective?.strategicThemeId || '',
         priority: objective?.priority || 'medium',
         quarter: objective?.quarter || 'Q1 2025',
         owner: objective?.owner || '',
@@ -319,6 +352,24 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
               </div>
 
               <div className="border-t border-border pt-6">
+                {strategicThemes?.length > 0 && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Strategic Theme
+                    </label>
+                    <select
+                      value={formData?.strategicThemeId}
+                      onChange={(e) => handleInputChange('strategicThemeId', e?.target?.value)}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      <option value="">Select a strategic theme (Optional)</option>
+                      {strategicThemes?.map((theme) => (
+                        <option key={theme.id} value={theme.id}>{theme.title}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Business Module <span className="text-error">*</span>
@@ -564,9 +615,13 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
                     className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   >
                     <option value="">Select owner</option>
-                    {teamMembers?.map((member) => (
-                      <option key={member} value={member}>{member}</option>
-                    ))}
+                    {availableUsers?.length > 0 ? (
+                      availableUsers.map((user) => (
+                        <option key={user.id} value={user.name}>{user.name}</option>
+                      ))
+                    ) : (
+                      <option value="" disabled>No users found</option>
+                    )}
                   </select>
                   {errors?.owner && (
                     <p className="text-error text-xs mt-1">{errors?.owner}</p>
@@ -600,11 +655,13 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
                   className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <option value="">Select team (optional)</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="Product">Product</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Sales">Sales</option>
-                  <option value="Customer Success">Customer Success</option>
+                  {availableDepartments?.length > 0 ? (
+                    availableDepartments.map((dept) => (
+                      <option key={dept.id} value={dept.name}>{dept.name}</option>
+                    ))
+                  ) : (
+                    <option value="" disabled>No teams found</option>
+                  )}
                 </select>
               </div>
 

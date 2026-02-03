@@ -38,15 +38,15 @@ export const getDefaultOrganizationId = async () => {
 };
 
 // Create a user record in the application users table
-export const createUser = async ({ name, email, role, status }) => {
+export const createUser = async ({ name, email, role, status, organization_id }) => {
   if (!supabase) throw new Error('Supabase not configured');
-  const organization_id = await getDefaultOrganizationId();
+  const finalOrgId = organization_id || await getDefaultOrganizationId();
   const is_active = String(status).toLowerCase() === 'active';
   const dbRole = mapRole(role);
 
   const { data, error } = await supabase
     .from('users')
-    .insert([{ organization_id, email, name, role: dbRole, is_active }])
+    .insert([{ organization_id: finalOrgId, email, name, role: dbRole, is_active }])
     .select()
     .single();
   if (error) throw error;
@@ -56,25 +56,37 @@ export const createUser = async ({ name, email, role, status }) => {
 // Upsert the auth user into the users table on login
 export const upsertAuthUserOnLogin = async (sessionUser) => {
   if (!supabase || !sessionUser) return;
-  const organization_id = await getDefaultOrganizationId();
 
   const email = sessionUser.email;
   const meta = sessionUser.user_metadata || {};
   const nameFallback = email?.split('@')[0] || 'User';
   const name = meta.full_name || meta.name || nameFallback;
+  
+  // Check if user already exists
+  const { data: existingUser } = await supabase
+    .from('users')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle();
 
+  if (existingUser) {
+    // User exists, just update metadata if needed (e.g. name), but preserve org/role
+    // For now, we skip updating to avoid overwriting admin-assigned roles/orgs
+    return;
+  }
+
+  // New user: assign to default org
+  const organization_id = await getDefaultOrganizationId();
   // Default role for OAuth sign-ins
   const role = 'contributor';
 
   const { error } = await supabase
     .from('users')
-    .upsert(
-      [{ organization_id, email, name, role, is_active: true }],
-      { onConflict: 'email' }
-    );
+    .insert([{ organization_id, email, name, role, is_active: true }]);
+
   if (error) {
     // Log but do not block auth flow
-    console.warn('[Auth] Failed to upsert user record:', error?.message || error);
+    console.warn('[Auth] Failed to create user record:', error?.message || error);
   }
 };
 

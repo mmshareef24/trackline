@@ -3,6 +3,7 @@ import Header from '../../components/ui/Header';
 import Sidebar from '../../components/ui/Sidebar';
 import { useSidebar } from '../../contexts/SidebarContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useOrganization } from '../../contexts/OrganizationContext';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
 import UserCard from './components/UserCard';
@@ -16,6 +17,7 @@ import { createUser, listUsers, updateUserRole, updateUserStatus } from '../../s
 const UserAndPermissionManagement = () => {
   const { isCollapsed } = useSidebar();
   const { user, session } = useAuth();
+  const { currentOrg } = useOrganization();
   const isAdmin = (user?.role || '').toLowerCase() === 'admin';
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -190,6 +192,7 @@ const UserAndPermissionManagement = () => {
         email: newUser?.email,
         role: newUser?.role,
         status: newUser?.status,
+        organization_id: currentOrg?.id
       });
 
       const uiUser = {
