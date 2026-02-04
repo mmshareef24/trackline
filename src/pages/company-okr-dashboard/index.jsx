@@ -296,7 +296,7 @@ const CompanyOKRDashboard = () => {
           onFilterToggle={() => setIsFilterOpen(!isFilterOpen)}
           onCreateNew={handleCreateNew}
           viewMode={viewMode}
-          onViewModeChange={(e) => setViewMode(e.target.value)}
+          onViewModeChange={setViewMode}
           hasChildrenOrgs={hasChildrenOrgs}
         />
 

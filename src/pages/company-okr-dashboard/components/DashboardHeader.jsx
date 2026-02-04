@@ -4,7 +4,15 @@ import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 
-const DashboardHeader = ({ onQuarterChange, onSearchChange, onFilterToggle, onCreateNew }) => {
+const DashboardHeader = ({ 
+  onQuarterChange, 
+  onSearchChange, 
+  onFilterToggle, 
+  onCreateNew,
+  viewMode,
+  onViewModeChange,
+  hasChildrenOrgs
+}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedQuarter, setSelectedQuarter] = useState('Q4');
   const [syncStatus, setSyncStatus] = useState('synced'); // synced, syncing, error
@@ -14,6 +22,11 @@ const DashboardHeader = ({ onQuarterChange, onSearchChange, onFilterToggle, onCr
     { value: 'Q2', label: 'Q2 2025' },
     { value: 'Q3', label: 'Q3 2025' },
     { value: 'Q4', label: 'Q4 2025' }
+  ];
+
+  const viewOptions = [
+    { value: 'company', label: 'Current Org' },
+    { value: 'group', label: 'Group View' }
   ];
 
   const handleSearchSubmit = (e) => {

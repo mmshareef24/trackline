@@ -271,9 +271,11 @@ const AnalyticsAndReportingDashboard = () => {
     };
   }, []);
 
-  const filteredTeams = teams.filter(team => {
+  const filteredTeams = (teams || []).filter(team => {
+    if (!team) return false;
     // Safety check for filters
     if (!filters || !filters.department || filters.department === 'all') return true;
+    // Check both ID and Name to support legacy and new filters
     return team.id === filters.department || team.name === filters.department;
   });
 

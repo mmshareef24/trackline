@@ -24,20 +24,21 @@ const TeamPerformanceGrid = ({ teams }) => {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {teams?.map((team) => (
-          <div key={team?.id} className="border border-border rounded-lg p-4 hover:shadow-sm transition-shadow">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-medium text-primary">
-                    {team?.name?.charAt(0)}
-                  </span>
+        {teams && teams.length > 0 ? (
+          teams.map((team) => (
+            <div key={team?.id || Math.random()} className="border border-border rounded-lg p-4 hover:shadow-sm transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-primary">
+                      {team?.name ? team.name.charAt(0) : '?'}
+                    </span>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-foreground">{team?.name || 'Unknown Team'}</h4>
+                    <p className="text-sm text-muted-foreground">{team?.members || 0} members</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-medium text-foreground">{team?.name}</h4>
-                  <p className="text-sm text-muted-foreground">{team?.members} members</p>
-                </div>
-              </div>
               <div className={`flex items-center space-x-1 px-2 py-1 rounded-full ${getPerformanceColor(team?.performance)}`}>
                 <Icon name={getPerformanceIcon(team?.performance)} size={14} />
                 <span className="text-sm font-medium">{team?.performance}%</span>
@@ -68,7 +69,12 @@ const TeamPerformanceGrid = ({ teams }) => {
               </div>
             </div>
           </div>
-        ))}
+        ))
+      ) : (
+        <div className="col-span-full text-center p-4 text-muted-foreground">
+          No team data available
+        </div>
+      )}
       </div>
     </div>
   );
