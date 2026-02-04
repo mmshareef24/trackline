@@ -272,7 +272,8 @@ const AnalyticsAndReportingDashboard = () => {
   }, []);
 
   const filteredTeams = teams.filter(team => {
-    if (filters.department === 'all') return true;
+    // Safety check for filters
+    if (!filters || !filters.department || filters.department === 'all') return true;
     return team.id === filters.department || team.name === filters.department;
   });
 
