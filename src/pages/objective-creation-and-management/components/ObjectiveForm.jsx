@@ -10,11 +10,31 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
   const [availableUsers, setAvailableUsers] = useState([]);
   const [availableDepartments, setAvailableDepartments] = useState([]);
 
+  const DEFAULT_MODULES = [
+    { id: 'finance', name: 'Finance' },
+    { id: 'sales', name: 'Sales' },
+    { id: 'marketing', name: 'Marketing' },
+    { id: 'hr', name: 'Human Resources' },
+    { id: 'it', name: 'IT' },
+    { id: 'operations', name: 'Operations' },
+    { id: 'supply_chain', name: 'Supply Chain' },
+    { id: 'production', name: 'Production' },
+    { id: 'projects', name: 'Projects' },
+    { id: 'executive', name: 'Executive' }
+  ];
+
   useEffect(() => {
+    let depts = [];
     if (prefetchedDepartments.length > 0) {
-      setAvailableDepartments(prefetchedDepartments);
+      depts = prefetchedDepartments;
+    } else if (departments && departments.length > 0) {
+      depts = departments;
+    }
+    
+    if (depts.length === 0) {
+      setAvailableDepartments(DEFAULT_MODULES);
     } else {
-      setAvailableDepartments(departments || []);
+      setAvailableDepartments(depts);
     }
   }, [prefetchedDepartments, departments]);
 
@@ -229,7 +249,15 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
     setIsSubmitting(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      onSave(formData);
+      
+      // Ensure departmentId is a valid UUID, otherwise clear it
+      const cleanFormData = { ...formData };
+      if (cleanFormData.departmentId && cleanFormData.departmentId.length < 30) {
+         // Assuming valid UUIDs are longer than 30 chars. Default IDs are short strings.
+         cleanFormData.departmentId = null;
+      }
+
+      onSave(cleanFormData);
       onClose();
     } catch (error) {
       console.error('Error saving objective:', error);

@@ -149,14 +149,19 @@ const ObjectiveCreationAndManagement = () => {
           executive: 'Executive'
         };
         
-        const deptName = MODULE_TO_DEPT_MAP[objData.module];
+        // Try to match module name directly or via map
+        let deptName = objData.module;
+        if (MODULE_TO_DEPT_MAP[objData.module.toLowerCase()]) {
+            deptName = MODULE_TO_DEPT_MAP[objData.module.toLowerCase()];
+        }
+        
         if (deptName) {
           // Try to find existing department
           const { data: dept } = await supabase
             .from('departments')
             .select('id')
             .eq('organization_id', orgId)
-            .eq('name', deptName)
+            .ilike('name', deptName)
             .maybeSingle();
             
           if (dept) {
