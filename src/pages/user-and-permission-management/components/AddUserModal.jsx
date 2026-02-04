@@ -241,7 +241,25 @@ const AddUserModal = ({ isOpen, onClose, onAddUser, availableDepartments = [], a
                       : roleOptions?.find(r => r?.value === formData?.role)?.label} Role
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {formData.role_id && availableRoles.find(r => r.id === formData.role_id)?.description}
+                    {formData.role_id && (
+                      <span className="block mb-2">
+                        {availableRoles.find(r => r.id === formData.role_id)?.description}
+                      </span>
+                    )}
+                    {formData.role_id && (
+                      <div className="mt-2 pt-2 border-t border-border/50">
+                        <strong className="block text-xs font-semibold mb-1.5">Active Permissions:</strong>
+                        <div className="flex flex-wrap gap-1.5">
+                          {Object.entries(availableRoles.find(r => r.id === formData.role_id)?.permissions || {})
+                            .filter(([_, enabled]) => enabled)
+                            .map(([key, _]) => (
+                              <span key={key} className="px-2 py-0.5 bg-background border border-border rounded text-[10px] font-medium text-foreground/80">
+                                {key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                              </span>
+                            ))}
+                        </div>
+                      </div>
+                    )}
                     {!formData.role_id && (
                       <>
                         {formData?.role === 'admin' && 'Full system access with user management capabilities'}
