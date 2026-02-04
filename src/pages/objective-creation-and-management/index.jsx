@@ -21,6 +21,7 @@ const ObjectiveCreationAndManagement = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState('create');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('split'); // 'split', 'list', 'details'
   
   // Use currentOrg.id from context instead of local orgId state
@@ -28,6 +29,7 @@ const ObjectiveCreationAndManagement = () => {
 
   useEffect(() => {
     const fetchObjectives = async () => {
+      // Wait for org to load
       if (isOrgLoading) return;
 
       if (!orgId) {
@@ -36,13 +38,16 @@ const ObjectiveCreationAndManagement = () => {
       }
 
       setIsLoading(true);
+      setError(null);
+      
       try {
         // Fetch departments
-        const { data: depts } = await supabase
+        const { data: depts, error: deptError } = await supabase
           .from('departments')
           .select('id, name')
           .eq('organization_id', orgId);
         
+        if (deptError) throw deptError;
         if (depts) setDepartments(depts);
 
         // Fetch objectives for current org
@@ -50,7 +55,10 @@ const ObjectiveCreationAndManagement = () => {
           .from('objectives')
           .select(`
             *,
-            keyResults:key_results(*)
+            keyResults:key_results(*),
+            owner:users!owner_id(name),
+            department:departments!department_id(name),
+            quarter:quarters!quarter_id(quarter, year)
           `)
           .eq('organization_id', orgId)
           .order('updated_at', { ascending: false });
@@ -60,9 +68,9 @@ const ObjectiveCreationAndManagement = () => {
         // Map DB structure to frontend structure
         const formattedObjectives = objs.map(obj => ({
           ...obj,
-          owner: obj.owner_name,
-          team: obj.team_name,
-          quarter: obj.quarter_name || obj.quarter, // Fallback
+          owner: obj.owner?.name || 'Unassigned',
+          team: obj.department?.name || 'Unassigned',
+          quarter: obj.quarter ? `Q${obj.quarter.quarter} ${obj.quarter.year}` : (obj.quarter_name || 'N/A'),
           status: obj.status === 'not_started' ? 'draft' : 
                   obj.status === 'in_progress' ? 'active' : 
                   obj.status,
@@ -77,6 +85,7 @@ const ObjectiveCreationAndManagement = () => {
         setObjectives(formattedObjectives);
       } catch (error) {
         console.error('Error loading objectives:', error);
+        setError(error.message);
       } finally {
         setIsLoading(false);
       }
@@ -207,7 +216,8 @@ const ObjectiveCreationAndManagement = () => {
         }
       }
 
-      // Resolve Team
+      // Resolve Team - Commented out as objectives table doesn't have team_id
+      /*
       let teamId = null;
       if (objData.team) {
          const { data: tData } = await supabase
@@ -218,6 +228,7 @@ const ObjectiveCreationAndManagement = () => {
           .maybeSingle();
         if (tData) teamId = tData.id;
       }
+      */
 
       const dbObjectiveData = {
         title: objData.title,
@@ -229,7 +240,7 @@ const ObjectiveCreationAndManagement = () => {
         module: objData.module,
         department_id: departmentId,
         owner_id: ownerId,
-        team_id: teamId,
+        // team_id: teamId, // Column does not exist in objectives table
         quarter_id: quarterId,
         strategic_theme_id: objData.strategicThemeId || null,
         updated_at: new Date().toISOString()
@@ -449,6 +460,35 @@ const ObjectiveCreationAndManagement = () => {
             <div className="text-center">
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-muted-foreground">Loading organization...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <Sidebar />
+        <div className="md:ml-60 pt-16">
+          <div className="flex items-center justify-center h-96">
+            <div className="text-center p-8 max-w-md mx-auto">
+              <div className="text-destructive mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Unable to Load Objectives</h3>
+              <p className="text-muted-foreground mb-4 bg-destructive/10 p-3 rounded text-sm font-mono text-left overflow-auto max-h-32">
+                {error}
+              </p>
+              <Button onClick={() => window.location.reload()} variant="outline">
+                Retry
+              </Button>
             </div>
           </div>
         </div>
