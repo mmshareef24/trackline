@@ -1,21 +1,31 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../utils/supabaseClient';
+import { useAuth } from './AuthContext';
 
 const OrganizationContext = createContext();
 
 export const useOrganization = () => useContext(OrganizationContext);
 
 export const OrganizationProvider = ({ children }) => {
+  const { user } = useAuth();
   const [currentOrg, setCurrentOrg] = useState(null);
   const [organizations, setOrganizations] = useState([]);
   const [strategicThemes, setStrategicThemes] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load orgs on mount
+  // Load orgs when user changes
   useEffect(() => {
-    fetchOrganizations();
-  }, []);
+    if (user) {
+      fetchOrganizations();
+    } else {
+      setOrganizations([]);
+      setCurrentOrg(null);
+      setStrategicThemes([]);
+      setDepartments([]);
+      setIsLoading(false);
+    }
+  }, [user]);
 
   // Fetch strategic themes and departments when current org changes
   useEffect(() => {
