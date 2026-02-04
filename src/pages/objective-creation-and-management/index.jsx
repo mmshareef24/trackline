@@ -27,7 +27,7 @@ const ObjectiveCreationAndManagement = () => {
   const orgId = currentOrg?.id;
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchObjectives = async () => {
       if (isOrgLoading) return;
 
       if (!orgId) {
