@@ -130,6 +130,10 @@ const ObjectiveDetails = ({ objective, onEdit, onClose }) => {
                 <Icon name="Clock" size={14} />
                 <span>Updated {objective?.updatedAt}</span>
               </div>
+              <div className="flex items-center space-x-1">
+                <Icon name="Briefcase" size={14} />
+                <span>{objective?.module || objective?.team || '—'}</span>
+              </div>
             </div>
           </div>
 
