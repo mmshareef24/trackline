@@ -17,7 +17,7 @@ import BulkActionToolbar from './components/BulkActionToolbar';
 
 const CompanyOKRDashboard = () => {
   const { isCollapsed } = useSidebar();
-  const { currentOrg, organizations } = useOrganization();
+  const { currentOrg, organizations, strategicThemes } = useOrganization();
   const [selectedQuarter, setSelectedQuarter] = useState('Q4');
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -90,8 +90,7 @@ const CompanyOKRDashboard = () => {
         .select(`
           *,
           owner:users(name),
-          department:departments(name),
-          strategic_theme:strategic_themes(title)
+          department:departments(name)
         `)
         .in('organization_id', orgIdsToFetch);
         // Add quarter filtering if needed: .eq('quarter_id', ...)
@@ -111,7 +110,7 @@ const CompanyOKRDashboard = () => {
         quarter: 4, // Todo: map quarter_id
         keyResults: 0, // Will update later if needed
         type: 'objective',
-        strategicTheme: obj.strategic_theme?.title
+        strategicTheme: strategicThemes?.find(t => t.id === obj.strategic_theme_id)?.title || obj.strategic_theme?.title || '—'
       }));
       setObjectives(formattedObjectives);
 
