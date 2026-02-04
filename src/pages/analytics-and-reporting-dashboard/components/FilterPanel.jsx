@@ -4,7 +4,7 @@ import Button from '../../../components/ui/Button';
 import Select from '../../../components/ui/Select';
 import { Checkbox } from '../../../components/ui/Checkbox';
 
-const FilterPanel = ({ isOpen, onClose, onApplyFilters, currentFilters }) => {
+const FilterPanel = ({ isOpen, onClose, onApplyFilters, currentFilters, departments = [] }) => {
   const [filters, setFilters] = useState(currentFilters);
 
   const quarterOptions = [
@@ -16,11 +16,10 @@ const FilterPanel = ({ isOpen, onClose, onApplyFilters, currentFilters }) => {
 
   const departmentOptions = [
     { value: 'all', label: 'All Departments' },
-    { value: 'engineering', label: 'Engineering' },
-    { value: 'marketing', label: 'Marketing' },
-    { value: 'sales', label: 'Sales' },
-    { value: 'product', label: 'Product' },
-    { value: 'hr', label: 'Human Resources' }
+    ...departments.map(dept => ({
+      value: dept.id, // Use ID as value for better matching
+      label: dept.name
+    }))
   ];
 
   const statusOptions = [
@@ -130,13 +129,6 @@ const FilterPanel = ({ isOpen, onClose, onApplyFilters, currentFilters }) => {
                 }}
               >
                 My Team Q4
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => handleFilterChange('department', 'engineering')}
-              >
-                Engineering
               </Button>
             </div>
           </div>

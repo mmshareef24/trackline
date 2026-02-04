@@ -3,7 +3,7 @@ import Header from '../../components/ui/Header';
 import Sidebar from '../../components/ui/Sidebar';
 import { useSidebar } from '../../contexts/SidebarContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { getTeamsPerformance } from '../../services/analyticsService';
+import { supabase } from '../../utils/supabaseClient';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
 import MetricsCard from './components/MetricsCard';
@@ -27,6 +27,72 @@ const AnalyticsAndReportingDashboard = () => {
     includeArchived: false,
     showOnlyMyTeam: false
   });
+
+  useEffect(() => {
+    if (!currentOrg?.id) return;
+
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch departments
+        const { data: depts } = await supabase
+          .from('departments')
+          .select('*')
+          .eq('organization_id', currentOrg.id);
+        
+        if (depts) {
+          setDepartments(depts);
+
+          // Fetch objectives for calculations
+          const { data: objectives } = await supabase
+            .from('objectives')
+            .select('*, key_results(*)')
+            .eq('organization_id', currentOrg.id);
+
+          // Calculate team performance
+          const teamStats = depts.map(dept => {
+            const deptObjs = objectives?.filter(o => o.department_id === dept.id) || [];
+            const totalObjs = deptObjs.length;
+            const completedObjs = deptObjs.filter(o => o.status === 'completed' || o.progress === 100).length;
+            
+            // Calculate average progress
+            const avgProgress = totalObjs > 0 
+              ? Math.round(deptObjs.reduce((acc, curr) => acc + (curr.progress || 0), 0) / totalObjs)
+              : 0;
+
+            // Calculate KR stats
+            let totalKRs = 0;
+            let completedKRs = 0;
+            deptObjs.forEach(obj => {
+              if (obj.key_results) {
+                totalKRs += obj.key_results.length;
+                completedKRs += obj.key_results.filter(kr => kr.progress === 100).length;
+              }
+            });
+
+            return {
+              id: dept.id,
+              name: dept.name,
+              members: 0, // Placeholder as we don't have member count in dept yet
+              performance: avgProgress,
+              completedObjectives: completedObjs,
+              totalObjectives: totalObjs,
+              completedKRs: completedKRs,
+              totalKRs: totalKRs,
+              checkInRate: 0 // Placeholder
+            };
+          });
+          setTeams(teamStats);
+        }
+      } catch (error) {
+        console.error('Error fetching analytics data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [currentOrg]);
 
   // Mock data for metrics cards
   const metricsData = [
@@ -316,7 +382,7 @@ const AnalyticsAndReportingDashboard = () => {
 
           {/* Team Performance Grid */}
           <div className="mb-8">
-            <TeamPerformanceGrid teams={teams} />
+            <TeamPerformanceGrid teams={filteredTeams} />
           </div>
 
           {/* Quick Actions */}
@@ -395,7 +461,8 @@ const AnalyticsAndReportingDashboard = () => {
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
         onApplyFilters={handleApplyFilters}
-        currentFilters={filters} />
+        currentFilters={filters}
+        departments={departments} />
       <ReportExportModal
         isOpen={isExportOpen}
         onClose={() => setIsExportOpen(false)}

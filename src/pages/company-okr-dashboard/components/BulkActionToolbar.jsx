@@ -3,7 +3,7 @@ import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Select from '../../../components/ui/Select';
 
-const BulkActionToolbar = ({ selectedItems, onBulkAction, onClearSelection }) => {
+const BulkActionToolbar = ({ selectedItems, onBulkAction, onClearSelection, availableUsers = [] }) => {
   const [bulkAction, setBulkAction] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -24,13 +24,7 @@ const BulkActionToolbar = ({ selectedItems, onBulkAction, onClearSelection }) =>
     { value: 'Completed', label: 'Completed' }
   ];
 
-  const ownerOptions = [
-    { value: 'Sarah Johnson', label: 'Sarah Johnson' },
-    { value: 'Michael Chen', label: 'Michael Chen' },
-    { value: 'Emily Rodriguez', label: 'Emily Rodriguez' },
-    { value: 'David Kim', label: 'David Kim' },
-    { value: 'Lisa Thompson', label: 'Lisa Thompson' }
-  ];
+  const ownerOptions = availableUsers.map(user => ({ value: user.name, label: user.name }));
 
   const quarterOptions = [
     { value: 'Q1', label: 'Q1 2025' },

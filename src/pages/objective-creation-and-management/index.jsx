@@ -15,6 +15,7 @@ const ObjectiveCreationAndManagement = () => {
   const { isCollapsed } = useSidebar();
   const { currentOrg, isLoading: isOrgLoading } = useOrganization();
   const [objectives, setObjectives] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [selectedObjective, setSelectedObjective] = useState(null);
   const [selectedObjectives, setSelectedObjectives] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -26,7 +27,7 @@ const ObjectiveCreationAndManagement = () => {
   const orgId = currentOrg?.id;
 
   useEffect(() => {
-    const fetchObjectives = async () => {
+    const fetchData = async () => {
       if (isOrgLoading) return;
 
       if (!orgId) {
@@ -36,6 +37,14 @@ const ObjectiveCreationAndManagement = () => {
 
       setIsLoading(true);
       try {
+        // Fetch departments
+        const { data: depts } = await supabase
+          .from('departments')
+          .select('id, name')
+          .eq('organization_id', orgId);
+        
+        if (depts) setDepartments(depts);
+
         // Fetch objectives for current org
         const { data: objs, error } = await supabase
           .from('objectives')
@@ -115,7 +124,9 @@ const ObjectiveCreationAndManagement = () => {
 
       // Map module to department
       let departmentId = null;
-      if (objData.module) {
+      if (objData.departmentId) {
+        departmentId = objData.departmentId;
+      } else if (objData.module) {
         const MODULE_TO_DEPT_MAP = {
           finance: 'Finance',
           sales: 'Sales',
@@ -530,6 +541,7 @@ const ObjectiveCreationAndManagement = () => {
         onSave={handleSaveObjective}
         objective={formMode === 'edit' ? selectedObjective : null}
         mode={formMode}
+        prefetchedDepartments={departments}
       />
 
       {/* Bulk Actions */}

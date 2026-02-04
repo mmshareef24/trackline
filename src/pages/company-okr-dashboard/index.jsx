@@ -31,6 +31,8 @@ const CompanyOKRDashboard = () => {
   const [initiatives, setInitiatives] = useState([]);
   const [progressUpdates, setProgressUpdates] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [availableDepartments, setAvailableDepartments] = useState([]);
 
   // Helper to get all descendant IDs for group view
   const getDescendantIds = (orgId, allOrgs) => {
@@ -50,8 +52,27 @@ const CompanyOKRDashboard = () => {
   useEffect(() => {
     if (currentOrg?.id) {
       fetchDashboardData();
+      fetchFiltersData();
     }
   }, [currentOrg, viewMode, selectedQuarter]); // Refetch when org, view mode, or quarter changes
+
+  const fetchFiltersData = async () => {
+    if (!currentOrg?.id) return;
+    
+    // Fetch users
+    const { data: users } = await supabase
+      .from('users')
+      .select('id, name, email')
+      .eq('organization_id', currentOrg.id);
+    if (users) setAvailableUsers(users);
+
+    // Fetch departments
+    const { data: depts } = await supabase
+      .from('departments')
+      .select('id, name')
+      .eq('organization_id', currentOrg.id);
+    if (depts) setAvailableDepartments(depts);
+  };
 
   const fetchDashboardData = async () => {
     setIsLoading(true);
@@ -286,6 +307,8 @@ const CompanyOKRDashboard = () => {
             onClose={() => setIsFilterOpen(false)}
             filters={filters}
             onFiltersChange={setFilters}
+            availableUsers={availableUsers}
+            availableDepartments={availableDepartments}
           />
 
           {/* Main Content */}
@@ -295,6 +318,7 @@ const CompanyOKRDashboard = () => {
               selectedItems={selectedItems}
               onBulkAction={handleBulkAction}
               onClearSelection={() => setSelectedItems([])}
+              availableUsers={availableUsers}
             />
 
             {isLoading ? (

@@ -5,19 +5,18 @@ import Input from '../../../components/ui/Input';
 import { useOrganization } from '../../../contexts/OrganizationContext';
 import { supabase } from '../../../utils/supabaseClient';
 
-const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'create' }) => {
-  const { currentOrg, strategicThemes } = useOrganization();
+const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'create', prefetchedDepartments = [] }) => {
+  const { currentOrg, strategicThemes, departments } = useOrganization();
   const [availableUsers, setAvailableUsers] = useState([]);
   const [availableDepartments, setAvailableDepartments] = useState([]);
-  const [modules, setModules] = useState([
-    { value: 'finance', label: 'Finance' },
-    { value: 'sales', label: 'Sales' },
-    { value: 'marketing', label: 'Marketing' },
-    { value: 'hr', label: 'Human Resources' },
-    { value: 'operations', label: 'Operations' },
-    { value: 'product', label: 'Product' },
-    { value: 'engineering', label: 'Engineering' }
-  ]);
+
+  useEffect(() => {
+    if (prefetchedDepartments.length > 0) {
+      setAvailableDepartments(prefetchedDepartments);
+    } else {
+      setAvailableDepartments(departments || []);
+    }
+  }, [prefetchedDepartments, departments]);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -25,6 +24,7 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
     description: '',
     category: '',
     module: '',
+    departmentId: '',
     strategicThemeId: '',
     priority: 'medium',
     quarter: 'Q1 2025',
@@ -78,13 +78,6 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
           .select('id, name, email')
           .eq('organization_id', currentOrg.id);
         if (users) setAvailableUsers(users);
-
-        // Fetch departments (teams)
-        const { data: depts } = await supabase
-          .from('departments')
-          .select('id, name')
-          .eq('organization_id', currentOrg.id);
-        if (depts) setAvailableDepartments(depts);
       };
       fetchData();
     }
@@ -97,6 +90,7 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
         description: objective?.description || '',
         category: objective?.category || '',
         module: objective?.module || '',
+        departmentId: objective?.department_id || '',
         strategicThemeId: objective?.strategic_theme_id || objective?.strategicThemeId || '',
         priority: objective?.priority || 'medium',
         quarter: objective?.quarter || 'Q1 2025',
@@ -109,6 +103,16 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
       });
     }
   }, [objective, mode]);
+
+  // Auto-link legacy module names to departments if departmentId is missing
+  useEffect(() => {
+    if (availableDepartments.length > 0 && formData.module && !formData.departmentId) {
+       const dept = availableDepartments.find(d => d.name.toLowerCase() === formData.module.toLowerCase() || d.name === formData.module);
+       if (dept) {
+         setFormData(prev => ({ ...prev, departmentId: dept.id }));
+       }
+    }
+  }, [availableDepartments, formData.module, formData.departmentId]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -375,13 +379,24 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
                     Business Module <span className="text-error">*</span>
                   </label>
                   <select
-                    value={formData?.module}
-                    onChange={(e) => handleInputChange('module', e?.target?.value)}
+                    value={formData?.departmentId}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      const selectedDept = availableDepartments.find(d => d.id === selectedId);
+                      setFormData(prev => ({
+                        ...prev,
+                        departmentId: selectedId,
+                        module: selectedDept ? selectedDept.name : ''
+                      }));
+                      if (errors?.module) {
+                        setErrors(prev => ({ ...prev, module: '' }));
+                      }
+                    }}
                     className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   >
                     <option value="">Select a module</option>
-                    {modules?.map((mod) => (
-                      <option key={mod.value} value={mod.value}>{mod.label}</option>
+                    {availableDepartments?.map((dept) => (
+                      <option key={dept.id} value={dept.id}>{dept.name}</option>
                     ))}
                   </select>
                   {errors?.module && (
@@ -655,15 +670,9 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
                   className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <option value="">Select team (optional)</option>
-                  {Array.isArray(availableDepartments) && availableDepartments.length > 0 ? (
-                    availableDepartments.map((dept) => (
-                      <option key={dept.id} value={dept.name}>{dept.name}</option>
-                    ))
-                  ) : (
-                    Array.isArray(modules) && modules.map((module) => (
-                      <option key={module.value} value={module.label}>{module.label}</option>
-                    ))
-                  )}
+                  {availableDepartments?.map((dept) => (
+                    <option key={dept.id} value={dept.name}>{dept.name}</option>
+                  ))}
                 </select>
               </div>
 

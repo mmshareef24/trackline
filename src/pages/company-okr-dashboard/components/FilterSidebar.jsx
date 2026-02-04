@@ -5,7 +5,7 @@ import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import { Checkbox } from '../../../components/ui/Checkbox';
 
-const FilterSidebar = ({ isOpen, onClose, filters, onFiltersChange }) => {
+const FilterSidebar = ({ isOpen, onClose, filters, onFiltersChange, availableUsers = [], availableDepartments = [] }) => {
   const [localFilters, setLocalFilters] = useState(filters);
 
   const quarterOptions = [
@@ -33,21 +33,12 @@ const FilterSidebar = ({ isOpen, onClose, filters, onFiltersChange }) => {
 
   const ownerOptions = [
     { value: 'all', label: 'All Owners' },
-    { value: 'Sarah Johnson', label: 'Sarah Johnson' },
-    { value: 'Michael Chen', label: 'Michael Chen' },
-    { value: 'Emily Rodriguez', label: 'Emily Rodriguez' },
-    { value: 'David Kim', label: 'David Kim' },
-    { value: 'Lisa Thompson', label: 'Lisa Thompson' }
+    ...availableUsers.map(user => ({ value: user.name, label: user.name }))
   ];
 
   const departmentOptions = [
     { value: 'all', label: 'All Departments' },
-    { value: 'Engineering', label: 'Engineering' },
-    { value: 'Marketing', label: 'Marketing' },
-    { value: 'Sales', label: 'Sales' },
-    { value: 'Product', label: 'Product' },
-    { value: 'HR', label: 'Human Resources' },
-    { value: 'IT', label: 'IT' }
+    ...availableDepartments.map(dept => ({ value: dept.name, label: dept.name }))
   ];
 
   const savedFilters = [

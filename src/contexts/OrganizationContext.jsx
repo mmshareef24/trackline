@@ -9,6 +9,7 @@ export const OrganizationProvider = ({ children }) => {
   const [currentOrg, setCurrentOrg] = useState(null);
   const [organizations, setOrganizations] = useState([]);
   const [strategicThemes, setStrategicThemes] = useState([]);
+  const [departments, setDepartments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load orgs on mount
@@ -16,12 +17,14 @@ export const OrganizationProvider = ({ children }) => {
     fetchOrganizations();
   }, []);
 
-  // Fetch strategic themes when current org changes
+  // Fetch strategic themes and departments when current org changes
   useEffect(() => {
     if (currentOrg?.id) {
       fetchStrategicThemes(currentOrg.id);
+      fetchDepartments(currentOrg.id);
     } else {
       setStrategicThemes([]);
+      setDepartments([]);
     }
   }, [currentOrg?.id]);
 
@@ -44,6 +47,21 @@ export const OrganizationProvider = ({ children }) => {
       setStrategicThemes(data || []);
     } catch (err) {
       console.error('Error fetching strategic themes:', err);
+    }
+  };
+
+  const fetchDepartments = async (orgId) => {
+    try {
+      const { data, error } = await supabase
+        .from('departments')
+        .select('*')
+        .eq('organization_id', orgId)
+        .order('name');
+        
+      if (error) throw error;
+      setDepartments(data || []);
+    } catch (err) {
+      console.error('Error fetching departments:', err);
     }
   };
 
@@ -189,17 +207,75 @@ export const OrganizationProvider = ({ children }) => {
     }
   };
 
+  const addDepartment = async (name) => {
+    if (!currentOrg?.id) return;
+    try {
+      const { data, error } = await supabase
+        .from('departments')
+        .insert({
+          organization_id: currentOrg.id,
+          name
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setDepartments(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error adding department:', error);
+      return { success: false, error };
+    }
+  };
+
+  const deleteDepartment = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('departments')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      setDepartments(prev => prev.filter(d => d.id !== id));
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting department:', error);
+      return { success: false, error };
+    }
+  };
+
+  const bulkDeleteDepartments = async (ids) => {
+    if (!ids || ids.length === 0) return { success: true };
+    try {
+      const { error } = await supabase
+        .from('departments')
+        .delete()
+        .in('id', ids);
+
+      if (error) throw error;
+      setDepartments(prev => prev.filter(d => !ids.includes(d.id)));
+      return { success: true };
+    } catch (error) {
+      console.error('Error bulk deleting departments:', error);
+      return { success: false, error };
+    }
+  };
+
   return (
     <OrganizationContext.Provider value={{
       currentOrg,
       organizations,
       strategicThemes,
+      departments,
       isLoading,
       switchOrganization,
       createOrganization,
       updateOrganization,
       addStrategicTheme,
       deleteStrategicTheme,
+      addDepartment,
+      deleteDepartment,
+      bulkDeleteDepartments,
       refreshOrganizations: fetchOrganizations
     }}>
       {children}

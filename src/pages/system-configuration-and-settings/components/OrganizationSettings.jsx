@@ -9,18 +9,22 @@ const OrganizationSettings = () => {
     currentOrg, 
     organizations, 
     strategicThemes,
+    departments,
     switchOrganization, 
     createOrganization,
     updateOrganization,
     addStrategicTheme,
     deleteStrategicTheme,
+    addDepartment,
+    deleteDepartment,
+    bulkDeleteDepartments,
     refreshOrganizations 
   } = useOrganization();
 
   const [newOrgName, setNewOrgName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState(null);
-  const [activeTab, setActiveTab] = useState('profile'); // 'profile', 'strategy', 'hierarchy'
+  const [activeTab, setActiveTab] = useState('profile'); // 'profile', 'strategy', 'hierarchy', 'departments'
 
   // Strategy State
   const [strategyForm, setStrategyForm] = useState({
@@ -33,6 +37,9 @@ const OrganizationSettings = () => {
 
   // Hierarchy State
   const [newSubName, setNewSubName] = useState('');
+
+  // Department State
+  const [newDepartmentName, setNewDepartmentName] = useState('');
 
   useEffect(() => {
     if (currentOrg) {
@@ -111,6 +118,30 @@ const OrganizationSettings = () => {
     }
   };
 
+  const handleAddDepartment = async () => {
+    if (!newDepartmentName.trim()) return;
+    const { success, error } = await addDepartment(newDepartmentName);
+    if (success) {
+      setNewDepartmentName('');
+    } else {
+      alert('Failed to create department: ' + error.message);
+    }
+  };
+
+  const handleBulkDeleteDepartments = async () => {
+    if (!departments || departments.length === 0) return;
+    
+    if (window.confirm(`Are you sure you want to delete ALL ${departments.length} departments? This cannot be undone and may affect objectives assigned to these departments.`)) {
+      const ids = departments.map(d => d.id);
+      const { success, error } = await bulkDeleteDepartments(ids);
+      if (success) {
+        // alert('All departments deleted successfully.'); // Context updates state, no need for alert if obvious
+      } else {
+        alert('Failed to delete departments: ' + error.message);
+      }
+    }
+  };
+
   // Helper to render org tree for Switcher
   const renderOrgTree = (orgs, parentId = null, level = 0) => {
     return orgs
@@ -161,6 +192,12 @@ const OrganizationSettings = () => {
           onClick={() => setActiveTab('strategy')}
         >
           Strategic Direction
+        </button>
+        <button
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'departments' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+          onClick={() => setActiveTab('departments')}
+        >
+          Departments
         </button>
         <button
           className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'hierarchy' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
@@ -295,6 +332,81 @@ const OrganizationSettings = () => {
                 <p className="text-sm text-muted-foreground text-center py-4">No strategic themes defined yet.</p>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'departments' && (
+        <div className="space-y-6">
+          <div className="bg-card border border-border rounded-lg p-6">
+            <h3 className="text-lg font-medium text-foreground mb-4">Departments & Teams</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Manage the departments within <strong>{currentOrg?.name}</strong>. These are used for assigning objectives and filtering reports.
+            </p>
+            
+            <div className="flex gap-3 mb-6">
+              <input 
+                type="text" 
+                placeholder="Enter department name"
+                className="flex-1 bg-background border border-border rounded-md px-3 py-2 text-sm"
+                value={newDepartmentName}
+                onChange={(e) => setNewDepartmentName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddDepartment()}
+              />
+              <Button 
+                variant="default" 
+                onClick={handleAddDepartment}
+                disabled={!newDepartmentName.trim()}
+                iconName="Plus"
+                iconPosition="left"
+              >
+                Add Department
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              {departments?.map(dept => (
+                <div key={dept.id} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg border border-border">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center">
+                      <Icon name="Users" className="text-primary" size={16} />
+                    </div>
+                    <span className="font-medium text-sm text-foreground">{dept.name}</span>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    iconName="Trash" 
+                    onClick={() => {
+                      if (window.confirm(`Are you sure you want to delete ${dept.name}? This may affect objectives assigned to this department.`)) {
+                        deleteDepartment(dept.id);
+                      }
+                    }} 
+                    className="text-destructive hover:bg-destructive/10" 
+                  />
+                </div>
+              ))}
+              {(!departments || departments.length === 0) && (
+                <div className="text-center py-8 bg-muted/10 rounded-lg border border-dashed border-border">
+                  <Icon name="Users" size={32} className="text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No departments defined yet.</p>
+                </div>
+              )}
+            </div>
+
+            {departments && departments.length > 0 && (
+              <div className="mt-6 pt-4 border-t border-border flex justify-end">
+                <Button 
+                  variant="outline" 
+                  onClick={handleBulkDeleteDepartments}
+                  className="text-destructive border-destructive hover:bg-destructive/10"
+                  iconName="Trash"
+                  iconPosition="left"
+                >
+                  Delete All Departments
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
