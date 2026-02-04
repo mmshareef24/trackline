@@ -27,6 +27,8 @@ const AnalyticsAndReportingDashboard = () => {
     includeArchived: false,
     showOnlyMyTeam: false
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
     if (!currentOrg?.id) return;
@@ -268,6 +270,11 @@ const AnalyticsAndReportingDashboard = () => {
       document.removeEventListener('keydown', handleKeyboardShortcuts);
     };
   }, []);
+
+  const filteredTeams = teams.filter(team => {
+    if (filters.department === 'all') return true;
+    return team.id === filters.department || team.name === filters.department;
+  });
 
   return (
     <div className="min-h-screen bg-background">
