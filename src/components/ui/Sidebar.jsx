@@ -240,39 +240,6 @@ const Sidebar = () => {
           </nav>
         </div>
 
-        {/* Quick Actions - Fixed Bottom */}
-        {!isCollapsed && (
-          <div className="flex-shrink-0 p-4 border-t border-border">
-            <div className="p-3 bg-accent/10 rounded-lg border border-accent/20">
-              <div className="flex items-center space-x-2 mb-2">
-                <Icon name="Zap" size={16} className="text-accent" />
-                <span className="text-sm font-medium text-foreground">Quick Actions</span>
-              </div>
-              <div className="space-y-1">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full justify-start h-8" 
-                  iconName="Plus" 
-                  iconPosition="left"
-                  onClick={() => handleNavigation('/objective-creation-and-management')}
-                >
-                  New OKR
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full justify-start h-8" 
-                  iconName="MessageSquare" 
-                  iconPosition="left"
-                  onClick={() => handleNavigation('/team-check-ins-and-collaboration')}
-                >
-                  Check-in
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
       </aside>
 
       {/* Mobile Drawer Sidebar */}
@@ -333,31 +300,6 @@ const Sidebar = () => {
           </div>
         </div>
       )}
-      {/* Mobile Quick Actions Bar */}
-      <div className="fixed bottom-14 left-0 right-0 z-50 px-4 md:hidden">
-        <div className="bg-card border border-border rounded-lg shadow-lg p-2 flex items-center justify-around">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="justify-start"
-            iconName="Plus"
-            iconPosition="left"
-            onClick={() => handleNavigation('/objective-creation-and-management')}
-          >
-            New OKR
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="justify-start"
-            iconName="MessageSquare"
-            iconPosition="left"
-            onClick={() => handleNavigation('/team-check-ins-and-collaboration')}
-          >
-            Check-in
-          </Button>
-        </div>
-      </div>
       {/* Mobile Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border md:hidden">
         <nav className="flex items-center justify-around py-2">
