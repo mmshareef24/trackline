@@ -167,9 +167,23 @@ const ObjectiveCreationAndManagement = () => {
           if (dept) {
             departmentId = dept.id;
           } else {
-            // Optional: Create department if it doesn't exist?
-            // For now, let's just log it. Creating might be too aggressive if permissions are restricted.
-            console.warn(`Department ${deptName} not found for module ${objData.module}`);
+            // Auto-create department if it doesn't exist to ensure consistency in System Settings
+            console.log(`Auto-creating department: ${deptName}`);
+            const { data: newDept, error: createErr } = await supabase
+              .from('departments')
+              .insert({
+                organization_id: orgId,
+                name: deptName
+              })
+              .select('id')
+              .single();
+            
+            if (!createErr && newDept) {
+               departmentId = newDept.id;
+               // Trigger a refresh of departments context if possible, or assume it will happen on next fetch
+            } else {
+               console.error('Failed to auto-create department:', createErr);
+            }
           }
         }
       }
