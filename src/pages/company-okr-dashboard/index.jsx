@@ -90,6 +90,7 @@ const CompanyOKRDashboard = () => {
         .select(`
           *,
           owner:users(name),
+          department:departments(name),
           strategic_theme:strategic_themes(title)
         `)
         .in('organization_id', orgIdsToFetch);
@@ -106,6 +107,7 @@ const CompanyOKRDashboard = () => {
         priority: obj.priority.charAt(0).toUpperCase() + obj.priority.slice(1),
         progress: obj.progress || 0,
         owner: obj.owner?.name || 'Unknown',
+        team: obj.module || obj.department?.name || '—',
         quarter: 4, // Todo: map quarter_id
         keyResults: 0, // Will update later if needed
         type: 'objective',

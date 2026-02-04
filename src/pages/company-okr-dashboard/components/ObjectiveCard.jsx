@@ -97,6 +97,14 @@ const ObjectiveCard = ({ objective, onEdit, onDelete, onDragStart, onDragEnd, is
         <span className={`text-xs px-2 py-1 rounded-full border ${getStatusColor(objective?.status)}`}>
           {objective?.status}
         </span>
+        {objective?.team && (
+          <span className="text-xs px-2 py-1 rounded-full border text-primary bg-primary/10 border-primary/20">
+            {objective.team.charAt(0).toUpperCase() + objective.team.slice(1).replace(/_/g, ' ')}
+          </span>
+        )}
+      </div>
+      
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-1">
           <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
             <span className="text-xs font-medium text-primary-foreground">

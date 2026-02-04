@@ -172,6 +172,10 @@ const ObjectivesList = ({ objectives, onSelectObjective, selectedObjectiveId, on
                     <span>{objective?.owner}</span>
                   </div>
                   <div className="flex items-center space-x-1">
+                    <Icon name="Briefcase" size={12} />
+                    <span>{objective?.module || objective?.team || '—'}</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
                     <Icon name="Calendar" size={12} />
                     <span>{objective?.quarter}</span>
                   </div>
