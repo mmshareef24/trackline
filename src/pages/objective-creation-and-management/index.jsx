@@ -330,55 +330,69 @@ const ObjectiveCreationAndManagement = () => {
       }
 
       // Handle Key Results
-      if (keyResults && keyResults.length > 0) {
-        // Prepare KRs for upsert
-        const krsToUpsert = keyResults.map(kr => ({
-          objective_id: savedObjective.id,
-          title: kr.title,
-          metric_type: kr.metricType,
-          target: kr.targetValue,
-          current: kr.currentValue,
-          unit: kr.unit,
-          progress: kr.progress,
-          status: kr.status || 'not_started',
-          priority: kr.priority || 'medium',
-          id: typeof kr.id === 'string' && kr.id.length > 10 ? kr.id : undefined // Only keep ID if it's a valid UUID (simple check)
-        }));
+      // 1. Prepare KRs data
+      const krsToUpsert = (keyResults || []).map(kr => ({
+        objective_id: savedObjective.id,
+        title: kr.title,
+        metric_type: kr.metricType,
+        target: kr.targetValue,
+        current: kr.currentValue,
+        unit: kr.unit,
+        progress: kr.progress,
+        status: kr.status || 'not_started',
+        priority: kr.priority || 'medium',
+        // Use existing UUID if valid, otherwise undefined to let Supabase generate one
+        // UUIDs are 36 chars, timestamps are usually numbers or shorter strings
+        id: (typeof kr.id === 'string' && kr.id.length > 20) ? kr.id : undefined 
+      }));
 
-        // Since upsert with undefined ID works for insert, but we have mixed numeric IDs from frontend mock
-        // We should separate inserts and updates or just insert new ones.
-        // For simplicity, let's delete existing KRs and insert new ones (easiest for full sync)
-        // OR better: iterate and insert/update.
-        
-        // Strategy: Delete all KRs for this objective and re-insert (simplest for this prototype phase)
-        await supabase.from('key_results').delete().eq('objective_id', savedObjective.id);
-        
-        const { data: savedKRs, error: krError } = await supabase
-          .from('key_results')
-          .insert(krsToUpsert.map(kr => {
-             const { id, ...rest } = kr; // Remove mock IDs
-             return rest;
-          }))
-          .select();
+      // 2. Identify IDs to keep
+      const resultIdsToKeep = krsToUpsert
+        .filter(kr => kr.id)
+        .map(kr => kr.id);
 
-        if (krError) {
-            console.error('Supabase Key Results Error:', krError);
-            throw krError;
-        }
-
-        // Update local state with saved KRs
-        const formattedKRs = savedKRs.map(kr => ({
-          ...kr,
-          currentValue: kr.current,
-          targetValue: kr.target,
-          metricType: kr.metric_type
-        }));
-
-        setObjectives(prev => prev.map(obj => 
-          obj.id === savedObjective.id ? { ...savedObjective, keyResults: formattedKRs } : obj
-        ));
-        setSelectedObjective({ ...savedObjective, keyResults: formattedKRs });
+      // 3. Delete removed Key Results
+      // If we have IDs to keep, delete everything else for this objective
+      // If we have no IDs to keep, it means all KRs in form are new (or empty), so delete all existing
+      let deleteQuery = supabase.from('key_results').delete().eq('objective_id', savedObjective.id);
+      
+      if (resultIdsToKeep.length > 0) {
+        deleteQuery = deleteQuery.not('id', 'in', `(${resultIdsToKeep.join(',')})`);
       }
+      
+      const { error: deleteError } = await deleteQuery;
+      if (deleteError) {
+        console.error('Error deleting removed key results:', deleteError);
+        // Continue anyway to try and save the new ones
+      }
+
+      // 4. Upsert (Insert/Update) Key Results
+      let savedKRs = [];
+      if (krsToUpsert.length > 0) {
+          const { data, error: upsertError } = await supabase
+            .from('key_results')
+            .upsert(krsToUpsert)
+            .select();
+            
+          if (upsertError) {
+             console.error('Supabase Key Results Upsert Error:', upsertError);
+             throw upsertError;
+          }
+          savedKRs = data;
+      }
+
+      // 5. Update local state
+      const formattedKRs = savedKRs.map(kr => ({
+        ...kr,
+        currentValue: kr.current,
+        targetValue: kr.target,
+        metricType: kr.metric_type
+      }));
+
+      setObjectives(prev => prev.map(obj => 
+        obj.id === savedObjective.id ? { ...savedObjective, keyResults: formattedKRs } : obj
+      ));
+      setSelectedObjective({ ...savedObjective, keyResults: formattedKRs });
 
       // alert('Objective saved successfully!'); // Optional success message
 
