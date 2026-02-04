@@ -70,6 +70,7 @@ const ObjectiveCreationAndManagement = () => {
           ...obj,
           owner: obj.owner?.name || 'Unassigned',
           team: obj.department?.name || 'Unassigned',
+          module: obj.module || obj.department?.name || '',
           quarter: obj.quarter ? `Q${obj.quarter.quarter} ${obj.quarter.year}` : (obj.quarter_name || 'N/A'),
           status: obj.status === 'not_started' ? 'draft' : 
                   obj.status === 'in_progress' ? 'active' : 
@@ -115,6 +116,7 @@ const ObjectiveCreationAndManagement = () => {
 
   const handleSaveObjective = async (objectiveData) => {
     console.log('Attempting to save objective...', objectiveData);
+    console.log('Module:', objectiveData.module, 'Department ID:', objectiveData.departmentId);
     
     if (!orgId) {
       console.error('No organization ID found');
@@ -245,6 +247,8 @@ const ObjectiveCreationAndManagement = () => {
         strategic_theme_id: objData.strategicThemeId || null,
         updated_at: new Date().toISOString()
       };
+
+      console.log('DB Objective Payload:', dbObjectiveData);
 
       let savedObjective;
 
