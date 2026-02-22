@@ -10,8 +10,62 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Minimal manual models to enable Prisma Client without introspection.
-// These map to existing tables in db/supabase_seed.sql on Supabase.
+// --- Core Models ---
+
+model Organization {
+  id                String   @id @default(uuid())
+  name              String
+  subscription_tier String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  // Relations
+  users             User[]
+  departments       Department[]
+  strategic_themes  StrategicTheme[]
+  objectives        Objective[]
+  integrations      Integration[]
+  notification_rules NotificationRule[]
+  milestones        Milestone[]
+
+  @@map("organizations")
+}
+
+model User {
+  id              String   @id @default(uuid())
+  organization_id String
+  email           String   @unique
+  name            String?
+  role            String?  @default("member") // admin, manager, member
+  avatar          String?
+  status          String?  @default("active")
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organization_id], references: [id])
+  owned_objectives Objective[]  @relation("ObjectiveOwner")
+  checkins        CheckIn[]
+  departments_managed Department[] @relation("DepartmentManager")
+
+  @@map("users")
+}
+
+model Department {
+  id              String   @id @default(uuid())
+  organization_id String
+  name            String
+  manager_id      String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organization_id], references: [id])
+  manager         User?        @relation("DepartmentManager", fields: [manager_id], references: [id])
+  objectives      Objective[]
+
+  @@map("departments")
+}
 
 model Quarter {
   id      Int  @id @default(autoincrement())
@@ -25,25 +79,150 @@ model Quarter {
   @@unique([year, quarter])
 }
 
-model Objective {
-  id              String   @id @db.Uuid @default(dbgenerated("gen_random_uuid()"))
-  organization_id String   @db.Uuid
+model StrategicTheme {
+  id              String   @id @default(uuid())
+  organization_id String
   title           String
   description     String?
-  owner_id        String?  @db.Uuid
-  department_id   String?  @db.Uuid
-  module          String?
-  status          String
-  priority        String
-  quarter_id      Int?
-  progress        Int
-  start_date      DateTime? @db.Date
-  due_date        DateTime? @db.Date
-  created_at      DateTime  @default(now()) @db.Timestamptz
-  updated_at      DateTime  @default(now()) @db.Timestamptz
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
 
   // Relations
-  quarter         Quarter?  @relation(fields: [quarter_id], references: [id])
+  organization    Organization @relation(fields: [organization_id], references: [id])
+  objectives      Objective[]
+
+  @@map("strategic_themes")
+}
+
+// --- OKR Models ---
+
+model Objective {
+  id                String   @id @default(uuid())
+  organization_id   String
+  title             String
+  description       String?
+  owner_id          String?
+  department_id     String?
+  strategic_theme_id String?
+  category          String?
+  module            String?
+  status            String   @default("not_started")
+  priority          String   @default("medium")
+  quarter_id        Int?
+  progress          Int      @default(0)
+  start_date        DateTime?
+  due_date          DateTime?
+  tags              String[] // Stored as array of strings
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  // Relations
+  organization      Organization @relation(fields: [organization_id], references: [id])
+  owner             User?        @relation("ObjectiveOwner", fields: [owner_id], references: [id])
+  department        Department?  @relation(fields: [department_id], references: [id])
+  strategic_theme   StrategicTheme? @relation(fields: [strategic_theme_id], references: [id])
+  quarter           Quarter?     @relation(fields: [quarter_id], references: [id])
+  key_results       KeyResult[]
 
   @@map("objectives")
+}
+
+model KeyResult {
+  id            String   @id @default(uuid())
+  objective_id  String
+  title         String
+  metric_type   String   @default("percentage") // percentage, currency, number
+  current_value Float    @default(0)
+  target_value  Float
+  unit          String?
+  progress      Int      @default(0)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  objective     Objective @relation(fields: [objective_id], references: [id], onDelete: Cascade)
+
+  @@map("key_results")
+}
+
+// --- Collaboration Models ---
+
+model CheckIn {
+  id                  String   @id @default(uuid())
+  user_id             String
+  week_of             DateTime
+  submitted_at        DateTime @default(now())
+  status              String   @default("pending") // pending, approved
+  priority            String   @default("medium")
+  summary             String?
+  progress_update     String?  @db.Text
+  completed_tasks     Int?
+  blockers            Int?
+  blockers_list       String[]
+  next_week_priorities String? @db.Text
+  mood                String?
+  workload_rating     String?
+  comments_count      Int      @default(0)
+
+  // Relations
+  user                User     @relation(fields: [user_id], references: [id])
+
+  @@map("checkins")
+}
+
+model Milestone {
+  id              String   @id @default(uuid())
+  organization_id String
+  title           String
+  date            DateTime
+  status          String   @default("upcoming") // upcoming, completed, overdue
+  description     String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organization_id], references: [id])
+
+  @@map("milestones")
+}
+
+// --- System Settings Models ---
+
+model Integration {
+  id              String   @id @default(uuid())
+  organization_id String
+  provider        String   // slack, jira, whatsapp, gsuite, salesforce
+  name            String
+  description     String?
+  icon            String?
+  status          String   @default("disconnected") // connected, disconnected, error
+  last_sync       DateTime?
+  error_message   String?
+  config          Json?    // Stores provider-specific config (webhookUrl, apiToken, phoneNumber, etc.)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organization_id], references: [id])
+
+  @@map("integrations")
+}
+
+model NotificationRule {
+  id              String   @id @default(uuid())
+  organization_id String
+  name            String
+  description     String?
+  enabled         Boolean  @default(true)
+  channels        String[] // email, inapp, slack, sms, whatsapp
+  recipients      String[] // owner, manager, team
+  timing          String?  // immediate, weekly-friday, etc.
+  template_id     String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relations
+  organization    Organization @relation(fields: [organization_id], references: [id])
+
+  @@map("notification_rules")
 }
