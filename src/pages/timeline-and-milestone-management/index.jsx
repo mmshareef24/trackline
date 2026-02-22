@@ -2,17 +2,19 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Header from '../../components/ui/Header';
 import Sidebar from '../../components/ui/Sidebar';
 import { useSidebar } from '../../contexts/SidebarContext';
+import { useOrganization } from '../../contexts/OrganizationContext';
+import { supabase } from '../../utils/supabaseClient';
 import TimelineHeader from './components/TimelineHeader';
 import TimelineView from './components/TimelineView';
 import MilestoneDetails from './components/MilestoneDetails';
 import DependencyMap from './components/DependencyMap';
 import QuickActions from './components/QuickActions';
 import Icon from '../../components/AppIcon';
-
-
+import Button from '../../components/ui/Button';
 
 const TimelineAndMilestoneManagement = () => {
   const { isCollapsed } = useSidebar();
+  const { currentOrg, isLoading: isOrgLoading } = useOrganization();
   const [currentView, setCurrentView] = useState('quarterly');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedQuarter, setSelectedQuarter] = useState('all');
@@ -20,308 +22,102 @@ const TimelineAndMilestoneManagement = () => {
   const [selectedMilestone, setSelectedMilestone] = useState(null);
   const [activeTab, setActiveTab] = useState('timeline');
   const [objectives, setObjectives] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock data for objectives and milestones
   useEffect(() => {
-    const mockObjectives = [
-      {
-        id: 'obj-1',
-        title: 'Increase Customer Acquisition Rate by 40%',
-        description: 'Focus on digital marketing channels and referral programs to boost new customer acquisition',
-        department: 'Marketing',
-        priority: 'high',
-        status: 'in-progress',
-        progress: 65,
-        owners: [
-          { id: 'sarah-wilson', name: 'Sarah Wilson' },
-          { id: 'mike-chen', name: 'Mike Chen' }
-        ],
-        dependencies: [],
-        milestones: [
-          {
-            id: 'milestone-1',
-            title: 'Launch Social Media Campaign',
-            description: 'Deploy comprehensive social media advertising across all major platforms',
-            quarter: 'Q1 2025',
-            dueDate: '2025-03-15',
-            status: 'completed',
-            priority: 'high',
-            assignee: 'sarah-wilson',
-            assigneeName: 'Sarah Wilson',
-            completionCriteria: 'Campaign live on Facebook, Instagram, LinkedIn, and Twitter with initial budget allocated',
-            dependencies: [],
-            comments: [
-              {
-                author: 'Sarah Wilson',
-                content: 'Campaign is performing above expectations with 2.3x ROAS',
-                timestamp: '2 days ago'
-              }
-            ]
-          },
-          {
-            id: 'milestone-2',
-            title: 'Implement Referral Program',
-            description: 'Build and launch customer referral system with rewards',
-            quarter: 'Q2 2025',
-            dueDate: '2025-06-30',
-            status: 'in-progress',
-            priority: 'medium',
-            assignee: 'mike-chen',
-            assigneeName: 'Mike Chen',
-            completionCriteria: 'Referral system integrated with CRM, reward structure defined, and beta testing completed',
-            dependencies: ['milestone-1'],
-            comments: []
-          }
-        ]
-      },
-      {
-        id: 'obj-2',
-        title: 'Reduce Customer Support Response Time to Under 2 Hours',
-        description: 'Implement automated ticketing system and expand support team capacity',
-        department: 'Customer Success',
-        priority: 'high',
-        status: 'in-progress',
-        progress: 45,
-        owners: [
-          { id: 'emily-davis', name: 'Emily Davis' }
-        ],
-        dependencies: [],
-        milestones: [
-          {
-            id: 'milestone-3',
-            title: 'Deploy AI Chatbot',
-            description: 'Implement AI-powered chatbot for initial customer inquiries',
-            quarter: 'Q1 2025',
-            dueDate: '2025-03-31',
-            status: 'at-risk',
-            priority: 'high',
-            assignee: 'emily-davis',
-            assigneeName: 'Emily Davis',
-            completionCriteria: 'Chatbot handles 70% of common inquiries automatically',
-            dependencies: [],
-            comments: [
-              {
-                author: 'Emily Davis',
-                content: 'Integration challenges with existing CRM system causing delays',
-                timestamp: '1 day ago'
-              }
-            ]
-          },
-          {
-            id: 'milestone-4',
-            title: 'Hire Additional Support Staff',
-            description: 'Recruit and onboard 3 new customer support representatives',
-            quarter: 'Q2 2025',
-            dueDate: '2025-05-15',
-            status: 'pending',
-            priority: 'medium',
-            assignee: 'emily-davis',
-            assigneeName: 'Emily Davis',
-            completionCriteria: '3 new hires completed onboarding and handling tickets independently',
-            dependencies: ['milestone-3'],
-            comments: []
-          }
-        ]
-      },
-      {
-        id: 'obj-3',
-        title: 'Launch Mobile Application with 4.5+ App Store Rating',
-        description: 'Develop and launch iOS and Android applications with focus on user experience',
-        department: 'Product',
-        priority: 'high',
-        status: 'in-progress',
-        progress: 78,
-        owners: [
-          { id: 'alex-johnson', name: 'Alex Johnson' },
-          { id: 'john-doe', name: 'John Doe' }
-        ],
-        dependencies: ['obj-1'],
-        milestones: [
-          {
-            id: 'milestone-5',
-            title: 'Complete Beta Testing',
-            description: 'Conduct comprehensive beta testing with 100+ users',
-            quarter: 'Q1 2025',
-            dueDate: '2025-03-20',
-            status: 'completed',
-            priority: 'high',
-            assignee: 'alex-johnson',
-            assigneeName: 'Alex Johnson',
-            completionCriteria: 'Beta testing completed with 95% user satisfaction and major bugs resolved',
-            dependencies: [],
-            comments: [
-              {
-                author: 'Alex Johnson',
-                content: 'Beta testing exceeded expectations with 4.7 average rating',
-                timestamp: '5 days ago'
-              }
-            ]
-          },
-          {
-            id: 'milestone-6',
-            title: 'App Store Submission',
-            description: 'Submit applications to Apple App Store and Google Play Store',
-            quarter: 'Q2 2025',
-            dueDate: '2025-04-15',
-            status: 'in-progress',
-            priority: 'high',
-            assignee: 'john-doe',
-            assigneeName: 'John Doe',
-            completionCriteria: 'Apps approved and live on both app stores',
-            dependencies: ['milestone-5'],
-            comments: []
-          }
-        ]
-      },
-      {
-        id: 'obj-4',
-        title: 'Achieve 99.9% System Uptime',
-        description: 'Implement robust infrastructure monitoring and disaster recovery procedures',
-        department: 'Engineering',
-        priority: 'medium',
-        status: 'in-progress',
-        progress: 82,
-        owners: [
-          { id: 'mike-chen', name: 'Mike Chen' }
-        ],
-        dependencies: [],
-        milestones: [
-          {
-            id: 'milestone-7',
-            title: 'Implement Monitoring System',
-            description: 'Deploy comprehensive system monitoring and alerting',
-            quarter: 'Q1 2025',
-            dueDate: '2025-02-28',
-            status: 'completed',
-            priority: 'high',
-            assignee: 'mike-chen',
-            assigneeName: 'Mike Chen',
-            completionCriteria: 'Monitoring covers all critical systems with automated alerting',
-            dependencies: [],
-            comments: []
-          },
-          {
-            id: 'milestone-8',
-            title: 'Setup Disaster Recovery',
-            description: 'Establish disaster recovery procedures and backup systems',
-            quarter: 'Q2 2025',
-            dueDate: '2025-06-15',
-            status: 'in-progress',
-            priority: 'medium',
-            assignee: 'mike-chen',
-            assigneeName: 'Mike Chen',
-            completionCriteria: 'DR procedures tested and documented with RTO < 4 hours',
-            dependencies: ['milestone-7'],
-            comments: []
-          }
-        ]
-      },
-      {
-        id: 'obj-5',
-        title: 'Expand to 3 New International Markets',
-        description: 'Research and enter European and Asian markets with localized offerings',
-        department: 'Business Development',
-        priority: 'medium',
-        status: 'pending',
-        progress: 25,
-        owners: [
-          { id: 'sarah-wilson', name: 'Sarah Wilson' },
-          { id: 'emily-davis', name: 'Emily Davis' }
-        ],
-        dependencies: ['obj-1', 'obj-3'],
-        milestones: [
-          {
-            id: 'milestone-9',
-            title: 'Market Research Completion',
-            description: 'Complete comprehensive market analysis for target regions',
-            quarter: 'Q2 2025',
-            dueDate: '2025-05-30',
-            status: 'pending',
-            priority: 'medium',
-            assignee: 'sarah-wilson',
-            assigneeName: 'Sarah Wilson',
-            completionCriteria: 'Market research reports completed for UK, Germany, and Japan',
-            dependencies: [],
-            comments: []
-          },
-          {
-            id: 'milestone-10',
-            title: 'Regulatory Compliance',
-            description: 'Ensure compliance with local regulations in target markets',
-            quarter: 'Q3 2025',
-            dueDate: '2025-08-31',
-            status: 'pending',
-            priority: 'high',
-            assignee: 'emily-davis',
-            assigneeName: 'Emily Davis',
-            completionCriteria: 'Legal compliance verified and documentation completed for all markets',
-            dependencies: ['milestone-9'],
-            comments: []
-          }
-        ]
-      },
-      {
-        id: 'obj-6',
-        title: 'Implement Advanced Analytics Dashboard',
-        description: 'Build comprehensive analytics platform for data-driven decision making',
-        department: 'Data Science',
-        priority: 'low',
-        status: 'in-progress',
-        progress: 55,
-        owners: [
-          { id: 'alex-johnson', name: 'Alex Johnson' }
-        ],
-        dependencies: [],
-        milestones: [
-          {
-            id: 'milestone-11',
-            title: 'Data Pipeline Setup',
-            description: 'Establish automated data collection and processing pipeline',
-            quarter: 'Q1 2025',
-            dueDate: '2025-03-10',
-            status: 'completed',
-            priority: 'medium',
-            assignee: 'alex-johnson',
-            assigneeName: 'Alex Johnson',
-            completionCriteria: 'Data pipeline processes 1M+ events daily with 99% accuracy',
-            dependencies: [],
-            comments: []
-          },
-          {
-            id: 'milestone-12',
-            title: 'Dashboard Development',
-            description: 'Build interactive dashboard with key business metrics',
-            quarter: 'Q2 2025',
-            dueDate: '2025-06-20',
-            status: 'in-progress',
-            priority: 'medium',
-            assignee: 'alex-johnson',
-            assigneeName: 'Alex Johnson',
-            completionCriteria: 'Dashboard provides real-time insights with customizable views',
-            dependencies: ['milestone-11'],
-            comments: []
-          }
-        ]
+    const fetchTimelineData = async () => {
+      if (isOrgLoading) return;
+      
+      if (!currentOrg?.id) {
+        setIsLoading(false);
+        setObjectives([]);
+        return;
       }
-    ];
 
-    setObjectives(mockObjectives);
-  }, []);
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // Create a timeout promise
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timed out')), 15000)
+        );
+
+        // Fetch objectives with key results (serving as milestones)
+        const queryPromise = supabase
+          .from('objectives')
+          .select(`
+            *,
+            owner:users!owner_id(id, name),
+            department:departments!department_id(name),
+            keyResults:key_results(
+              *,
+              owner:users(id, name)
+            )
+          `)
+          .eq('organization_id', currentOrg.id)
+          .order('created_at', { ascending: false });
+
+        const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
+
+        if (error) throw error;
+
+        // Transform data to match component expectations
+        const formattedObjectives = (data || []).map(obj => ({
+          id: obj.id,
+          title: obj.title,
+          description: obj.description,
+          department: obj.department?.name || 'Unassigned',
+          priority: obj.priority || 'medium',
+          status: obj.status === 'not_started' ? 'pending' : (obj.status === 'in_progress' ? 'in-progress' : obj.status),
+          progress: obj.progress || 0,
+          owners: obj.owner ? [obj.owner] : [],
+          dependencies: [], // Dependencies not yet implemented in DB
+          milestones: (obj.keyResults || []).map(kr => ({
+            id: kr.id,
+            title: kr.title,
+            description: kr.description || '',
+            quarter: 'Q' + (obj.quarter_id || '1') + ' 2025', // Mock quarter for now
+            dueDate: kr.due_date || obj.due_date || new Date().toISOString().split('T')[0],
+            status: kr.status === 'not_started' ? 'pending' : (kr.status === 'in_progress' ? 'in-progress' : kr.status),
+            priority: 'medium',
+            assignee: kr.owner?.id,
+            assigneeName: kr.owner?.name || 'Unassigned',
+            completionCriteria: 'Target: ' + kr.target_value,
+            dependencies: [],
+            comments: []
+          }))
+        }));
+
+        setObjectives(formattedObjectives);
+      } catch (err) {
+        console.error('Error fetching timeline data:', err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTimelineData();
+  }, [currentOrg?.id, isOrgLoading]);
 
   // Filter objectives based on search and filters
-  const filteredObjectives = objectives?.filter(objective => {
-    const matchesSearch = searchQuery === '' || 
-      objective?.title?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      objective?.department?.toLowerCase()?.includes(searchQuery?.toLowerCase());
-    
-    const matchesQuarter = selectedQuarter === 'all' || 
-      objective?.milestones?.some(milestone => milestone?.quarter === selectedQuarter);
-    
-    const matchesOwner = selectedOwner === 'all' || 
-      objective?.owners?.some(owner => owner?.id === selectedOwner);
+  const filteredObjectives = useMemo(() => {
+    return (objectives || []).filter(objective => {
+      const matchesSearch = searchQuery === '' || 
+        objective?.title?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+        objective?.department?.toLowerCase()?.includes(searchQuery?.toLowerCase());
+      
+      const matchesQuarter = selectedQuarter === 'all' || 
+        objective?.milestones?.some(milestone => milestone?.quarter === selectedQuarter);
+      
+      const matchesOwner = selectedOwner === 'all' || 
+        objective?.owners?.some(owner => owner?.id === selectedOwner);
 
-    return matchesSearch && matchesQuarter && matchesOwner;
-  });
+      return matchesSearch && matchesQuarter && matchesOwner;
+    });
+  }, [objectives, searchQuery, selectedQuarter, selectedOwner]);
 
   const handleMilestoneUpdate = (objectiveId, milestoneId, updates) => {
     setObjectives(prev => prev?.map(obj => {
@@ -388,105 +184,94 @@ const TimelineAndMilestoneManagement = () => {
             onQuarterChange={setSelectedQuarter}
             selectedOwner={selectedOwner}
             onOwnerChange={setSelectedOwner}
-            onExport={handleExport}
-            onBulkOperations={handleBulkOperations}
           />
 
-          {/* Tab Navigation */}
-          <div className="bg-card border border-border rounded-lg p-1">
-            <div className="flex space-x-1">
-              {tabs?.map((tab) => (
-                <button
-                  key={tab?.id}
-                  onClick={() => setActiveTab(tab?.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeTab === tab?.id
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                  }`}
-                >
-                  <Icon name={tab?.icon} size={16} />
-                  <span>{tab?.label}</span>
-                </button>
-              ))}
-            </div>
+          {/* Navigation Tabs */}
+          <div className="flex items-center space-x-4 border-b border-border">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Icon name={tab.icon} className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            ))}
           </div>
 
-          {/* Main Content */}
-          <div className="grid grid-cols-1 2xl:grid-cols-5 gap-6">
-            {/* Primary Content - Expanded for better horizontal utilization */}
-            <div className="2xl:col-span-4">
+          {/* Error Message */}
+          {error && (
+            <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Icon name="AlertCircle" className="w-4 h-4" />
+                {error}
+              </span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => window.location.reload()}
+                className="text-destructive border-destructive hover:bg-destructive/10"
+              >
+                Reload
+              </Button>
+            </div>
+          )}
+
+          {/* Content Area */}
+          {isLoading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <>
               {activeTab === 'timeline' && (
                 <TimelineView
                   objectives={filteredObjectives}
                   currentView={currentView}
-                  onMilestoneUpdate={handleMilestoneUpdate}
-                  onDependencyChange={handleDependencyUpdate}
+                  onMilestoneClick={setSelectedMilestone}
                 />
               )}
 
               {activeTab === 'dependencies' && (
                 <DependencyMap
                   objectives={filteredObjectives}
-                  onDependencyUpdate={handleDependencyUpdate}
+                  onDependencyAdd={handleDependencyUpdate}
                 />
               )}
 
               {activeTab === 'actions' && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <QuickActions
-                    onBulkUpdate={handleBulkOperations}
-                    onExport={handleExport}
-                    onTemplateApply={handleTemplateApply}
-                  />
-                  <div className="bg-card border border-border rounded-lg p-6">
-                    <div className="text-center text-muted-foreground">
-                      <Icon name="BarChart3" size={48} className="mx-auto mb-4 opacity-50" />
-                      <h3 className="font-medium text-foreground mb-2">Timeline Analytics</h3>
-                      <p className="text-sm">Advanced analytics and insights coming soon</p>
-                    </div>
-                  </div>
-                </div>
+                <QuickActions
+                  onExport={handleExport}
+                  onBulkAction={handleBulkOperations}
+                  onTemplateApply={handleTemplateApply}
+                />
               )}
-            </div>
-
-            {/* Sidebar Content - Collapsed by default on large screens */}
-            <div className="2xl:col-span-1">
-              <MilestoneDetails
-                milestone={selectedMilestone}
-                onUpdate={handleMilestoneUpdate}
-                onClose={() => setSelectedMilestone(null)}
-              />
-            </div>
-          </div>
-
-          {/* Keyboard Shortcuts Help */}
-          <div className="bg-muted/20 border border-border rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Icon name="Keyboard" size={16} className="text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">Keyboard Shortcuts</span>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 bg-muted text-muted-foreground rounded border">←→</kbd>
-                <span className="text-muted-foreground">Navigate timeline</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 bg-muted text-muted-foreground rounded border">Space</kbd>
-                <span className="text-muted-foreground">Select milestone</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 bg-muted text-muted-foreground rounded border">Enter</kbd>
-                <span className="text-muted-foreground">Quick edit</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 bg-muted text-muted-foreground rounded border">Esc</kbd>
-                <span className="text-muted-foreground">Close details</span>
-              </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </main>
+
+      {/* Milestone Details Modal */}
+      {selectedMilestone && (
+        <MilestoneDetails
+          milestone={selectedMilestone}
+          onClose={() => setSelectedMilestone(null)}
+          onUpdate={(updates) => {
+            // Find objective containing this milestone
+            const objective = objectives.find(obj => 
+              obj.milestones.some(m => m.id === selectedMilestone.id)
+            );
+            if (objective) {
+              handleMilestoneUpdate(objective.id, selectedMilestone.id, updates);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

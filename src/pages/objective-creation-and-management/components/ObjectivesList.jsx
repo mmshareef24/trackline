@@ -166,7 +166,7 @@ const ObjectivesList = ({ objectives, onSelectObjective, selectedObjectiveId, on
                   ></div>
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <div className="flex items-center flex-wrap gap-2 text-xs text-muted-foreground">
                   <div className="flex items-center space-x-1">
                     <Icon name="User" size={12} />
                     <span>{objective?.owner}</span>

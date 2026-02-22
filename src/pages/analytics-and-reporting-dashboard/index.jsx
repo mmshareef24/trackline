@@ -3,6 +3,7 @@ import Header from '../../components/ui/Header';
 import Sidebar from '../../components/ui/Sidebar';
 import { useSidebar } from '../../contexts/SidebarContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useOrganization } from '../../contexts/OrganizationContext';
 import { supabase } from '../../utils/supabaseClient';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
@@ -16,7 +17,7 @@ import TrendAnalysis from './components/TrendAnalysis';
 
 const AnalyticsAndReportingDashboard = () => {
   const { isCollapsed } = useSidebar();
-  const { currentOrg } = useAuth();
+  const { currentOrg } = useOrganization();
   const [teams, setTeams] = useState([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -36,7 +37,7 @@ const AnalyticsAndReportingDashboard = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch departments
+        // Fetch departments (for filters)
         const { data: depts } = await supabase
           .from('departments')
           .select('*')
@@ -44,28 +45,36 @@ const AnalyticsAndReportingDashboard = () => {
         
         if (depts) {
           setDepartments(depts);
+        }
 
+        // Fetch users for the grid
+        const { data: users } = await supabase
+          .from('users')
+          .select('*')
+          .eq('organization_id', currentOrg.id);
+
+        if (users) {
           // Fetch objectives for calculations
           const { data: objectives } = await supabase
             .from('objectives')
             .select('*, key_results(*)')
             .eq('organization_id', currentOrg.id);
 
-          // Calculate team performance
-          const teamStats = depts.map(dept => {
-            const deptObjs = objectives?.filter(o => o.department_id === dept.id) || [];
-            const totalObjs = deptObjs.length;
-            const completedObjs = deptObjs.filter(o => o.status === 'completed' || o.progress === 100).length;
+          // Calculate user performance
+          const teamStats = users.map(user => {
+            const userObjs = objectives?.filter(o => o.owner_id === user.id || o.owner === user.name) || [];
+            const totalObjs = userObjs.length;
+            const completedObjs = userObjs.filter(o => o.status === 'completed' || o.progress === 100).length;
             
             // Calculate average progress
             const avgProgress = totalObjs > 0 
-              ? Math.round(deptObjs.reduce((acc, curr) => acc + (curr.progress || 0), 0) / totalObjs)
+              ? Math.round(userObjs.reduce((acc, curr) => acc + (curr.progress || 0), 0) / totalObjs)
               : 0;
 
             // Calculate KR stats
             let totalKRs = 0;
             let completedKRs = 0;
-            deptObjs.forEach(obj => {
+            userObjs.forEach(obj => {
               if (obj.key_results) {
                 totalKRs += obj.key_results.length;
                 completedKRs += obj.key_results.filter(kr => kr.progress === 100).length;
@@ -73,9 +82,10 @@ const AnalyticsAndReportingDashboard = () => {
             });
 
             return {
-              id: dept.id,
-              name: dept.name,
-              members: 0, // Placeholder as we don't have member count in dept yet
+              id: user.id,
+              name: user.name,
+              members: user.role || 'Member',
+              department: user.department,
               performance: avgProgress,
               completedObjectives: completedObjs,
               totalObjectives: totalObjs,
@@ -275,7 +285,21 @@ const AnalyticsAndReportingDashboard = () => {
     if (!team) return false;
     // Safety check for filters
     if (!filters || !filters.department || filters.department === 'all') return true;
-    // Check both ID and Name to support legacy and new filters
+    
+    // Check user department (case insensitive match)
+    if (team.department) {
+      const filterVal = filters.department.toString().toLowerCase();
+      const teamDept = team.department.toString().toLowerCase();
+      // Try exact match or match against department name in list
+      const deptMatch = teamDept === filterVal;
+      if (deptMatch) return true;
+      
+      // If filter is an ID, check if we can find the department name
+      const deptFromId = departments.find(d => d.id === filters.department);
+      if (deptFromId && deptFromId.name.toLowerCase() === teamDept) return true;
+    }
+
+    // Fallback for ID/Name match
     return team.id === filters.department || team.name === filters.department;
   });
 

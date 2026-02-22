@@ -132,6 +132,7 @@ const NotificationSettings = () => {
       case 'inapp': return 'Bell';
       case 'slack': return 'MessageSquare';
       case 'sms': return 'Smartphone';
+      case 'whatsapp': return 'Phone';
       default: return 'Bell';
     }
   };
@@ -252,7 +253,7 @@ const NotificationSettings = () => {
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">Channels</label>
                     <div className="flex items-center space-x-4">
-                      {['email', 'inapp', 'slack', 'sms']?.map((channel) => (
+                      {['email', 'inapp', 'slack', 'sms', 'whatsapp']?.map((channel) => (
                         <label key={channel} className="flex items-center space-x-2 cursor-pointer">
                           <input
                             type="checkbox"

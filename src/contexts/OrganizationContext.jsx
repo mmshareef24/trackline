@@ -16,16 +16,20 @@ export const OrganizationProvider = ({ children }) => {
 
   // Load orgs when user changes
   useEffect(() => {
-    if (user) {
-      fetchOrganizations();
-    } else {
+    if (user?.id) {
+      // Small delay to ensure Supabase client is ready
+      const timer = setTimeout(() => {
+        fetchOrganizations();
+      }, 100);
+      return () => clearTimeout(timer);
+    } else if (!user) {
       setOrganizations([]);
       setCurrentOrg(null);
       setStrategicThemes([]);
       setDepartments([]);
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user?.id]);
 
   // Fetch strategic themes and departments when current org changes
   useEffect(() => {
@@ -76,15 +80,28 @@ export const OrganizationProvider = ({ children }) => {
   };
 
   const fetchOrganizations = async () => {
+    // If already loading or no user, skip
+    // We check !user inside but here it's called from useEffect(user)
+    
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      console.log('Fetching organizations...');
+      // Add timeout to fetch
+      const fetchPromise = supabase
         .from('organizations')
         .select('*')
         .order('name');
       
+      // 10s timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Organization fetch timeout')), 10000)
+      );
+
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
+      
       if (error) throw error;
       
+      console.log('Organizations fetched:', data?.length);
       setOrganizations(data || []);
 
       // Restore selected org from local storage or default to first
@@ -102,6 +119,7 @@ export const OrganizationProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Error fetching organizations:', error);
+      // Even on error, we should probably stop loading
     } finally {
       setIsLoading(false);
     }

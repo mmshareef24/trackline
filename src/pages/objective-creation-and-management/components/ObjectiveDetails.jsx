@@ -87,6 +87,9 @@ const ObjectiveDetails = ({ objective, onEdit, onClose }) => {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
           <div className="flex-1">
             <div className="flex items-center space-x-3 mb-2">
+              <Button variant="ghost" size="icon" className="lg:hidden -ml-2 mr-1" onClick={onClose}>
+                <Icon name="ArrowLeft" size={20} />
+              </Button>
               <h2 className="text-xl font-semibold text-foreground">{objective?.title}</h2>
               <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(objective?.status)}`}>
                 {objective?.status?.charAt(0)?.toUpperCase() + objective?.status?.slice(1)}

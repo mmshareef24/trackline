@@ -68,7 +68,7 @@ const CheckinTimeline = ({ checkins, selectedCheckin, onCheckinSelect, onApprove
     <div className="h-full flex flex-col bg-card">
       {/* Header */}
       <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
           <h2 className="text-lg font-semibold text-foreground">Check-in Timeline</h2>
           <div className="flex items-center space-x-2">
             <Button variant="ghost" size="sm" iconName="Filter">
@@ -81,8 +81,8 @@ const CheckinTimeline = ({ checkins, selectedCheckin, onCheckinSelect, onApprove
         </div>
 
         {/* Filters */}
-        <div className="flex items-center justify-between">
-          <div className="flex space-x-2">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-wrap gap-2">
             <select
               value={filterPriority}
               onChange={(e) => setFilterPriority(e?.target?.value)}

@@ -64,6 +64,21 @@ const IntegrationSettings = () => {
         enableRevenueSync: false,
         syncFrequency: 'daily'
       }
+    },
+    {
+      id: 'whatsapp',
+      name: 'WhatsApp',
+      description: 'WhatsApp notifications and sync',
+      icon: 'Phone',
+      status: 'disconnected',
+      lastSync: null,
+      config: {
+        phoneNumber: '',
+        apiToken: '',
+        webhookUrl: '',
+        enableNotifications: false,
+        syncFrequency: 'realtime'
+      }
     }
   ]);
 
@@ -289,6 +304,37 @@ const IntegrationSettings = () => {
                         onChange={(e) => handleConfigUpdate(integration?.id, 'projectKeys', e?.target?.value)}
                         placeholder="PROJ,DEV,QA"
                         description="Comma-separated list of project keys"
+                      />
+                    </div>
+                  )}
+
+                  {integration?.id === 'whatsapp' && (
+                    <div className="space-y-4">
+                      <Input
+                        label="Phone Number"
+                        type="tel"
+                        value={integration?.config?.phoneNumber}
+                        onChange={(e) => handleConfigUpdate(integration?.id, 'phoneNumber', e?.target?.value)}
+                        placeholder="+1234567890"
+                      />
+                      <Input
+                        label="API Token"
+                        type="password"
+                        value={integration?.config?.apiToken}
+                        onChange={(e) => handleConfigUpdate(integration?.id, 'apiToken', e?.target?.value)}
+                        placeholder="WhatsApp API Token"
+                      />
+                      <Input
+                        label="Webhook URL"
+                        type="url"
+                        value={integration?.config?.webhookUrl}
+                        onChange={(e) => handleConfigUpdate(integration?.id, 'webhookUrl', e?.target?.value)}
+                        placeholder="https://your-webhook-url.com"
+                      />
+                      <Checkbox
+                        label="Enable notifications"
+                        checked={integration?.config?.enableNotifications}
+                        onChange={(e) => handleConfigUpdate(integration?.id, 'enableNotifications', e?.target?.checked)}
                       />
                     </div>
                   )}

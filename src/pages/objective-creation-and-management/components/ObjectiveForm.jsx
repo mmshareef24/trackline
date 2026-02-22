@@ -324,8 +324,8 @@ const ObjectiveForm = ({ isOpen, onClose, onSave, objective = null, mode = 'crea
         </div>
 
         {/* Progress Steps */}
-        <div className="px-6 py-4 border-b border-border">
-          <div className="flex items-center space-x-4">
+        <div className="px-6 py-4 border-b border-border overflow-x-auto">
+          <div className="flex items-center space-x-4 min-w-max">
             {steps?.map((step, index) => (
               <div key={step?.id} className="flex items-center">
                 <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-colors ${

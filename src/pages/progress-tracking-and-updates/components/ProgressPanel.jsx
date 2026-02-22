@@ -61,11 +61,11 @@ const ProgressPanel = ({ objective, onProgressUpdate, onCommentAdd, onEvidenceUp
     <div className="h-full flex flex-col bg-card">
       {/* Header */}
       <div className="p-6 border-b border-border">
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-4 gap-4">
           <div className="flex-1">
             <h1 className="text-xl font-semibold text-foreground mb-2">{objective?.title}</h1>
             <p className="text-muted-foreground mb-3">{objective?.description}</p>
-            <div className="flex items-center space-x-4">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center space-x-2">
                 <Icon name="User" size={16} className="text-muted-foreground" />
                 <span className="text-sm text-foreground">{objective?.owner}</span>
@@ -84,7 +84,7 @@ const ProgressPanel = ({ objective, onProgressUpdate, onCommentAdd, onEvidenceUp
               )}
             </div>
           </div>
-          <div className="text-right">
+          <div className="text-left md:text-right">
             <div className="text-3xl font-bold text-foreground">{objective?.progress}%</div>
             <div className="text-sm text-muted-foreground">Overall Progress</div>
           </div>
@@ -103,8 +103,8 @@ const ProgressPanel = ({ objective, onProgressUpdate, onCommentAdd, onEvidenceUp
         </div>
       </div>
       {/* Tabs */}
-      <div className="border-b border-border">
-        <nav className="flex space-x-8 px-6">
+      <div className="border-b border-border overflow-x-auto">
+        <nav className="flex space-x-8 px-6 min-w-max">
           {tabs?.map((tab) => (
             <button
               key={tab?.id}

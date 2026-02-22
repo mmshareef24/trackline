@@ -22,7 +22,21 @@ const ObjectiveCreationAndManagement = () => {
   const [formMode, setFormMode] = useState('create');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('split'); // 'split', 'list', 'details'
+  const [viewMode, setViewMode] = useState(() => window.innerWidth < 1024 ? 'list' : 'split'); // 'split', 'list', 'details'
+  
+  // Update view mode on resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        if (viewMode !== 'split') setViewMode('split');
+      } else {
+        if (viewMode === 'split') setViewMode('list');
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [viewMode]);
   
   // Use currentOrg.id from context instead of local orgId state
   const orgId = currentOrg?.id;
@@ -41,17 +55,24 @@ const ObjectiveCreationAndManagement = () => {
       setError(null);
       
       try {
-        // Fetch departments
-        const { data: depts, error: deptError } = await supabase
+        // Create a timeout promise
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timed out')), 15000)
+        );
+
+        // Fetch departments with timeout
+        const departmentsPromise = supabase
           .from('departments')
           .select('id, name')
           .eq('organization_id', orgId);
+          
+        const { data: depts, error: deptError } = await Promise.race([departmentsPromise, timeoutPromise]);
         
         if (deptError) throw deptError;
         if (depts) setDepartments(depts);
 
-        // Fetch objectives for current org
-        const { data: objs, error } = await supabase
+        // Fetch objectives for current org with timeout
+        const objectivesPromise = supabase
           .from('objectives')
           .select(`
             *,
@@ -62,6 +83,8 @@ const ObjectiveCreationAndManagement = () => {
           `)
           .eq('organization_id', orgId)
           .order('updated_at', { ascending: false });
+
+        const { data: objs, error } = await Promise.race([objectivesPromise, timeoutPromise]);
 
         if (error) throw error;
         
@@ -497,6 +520,13 @@ const ObjectiveCreationAndManagement = () => {
             <div className="text-center">
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-muted-foreground">Loading organization...</p>
+              {/* Add a manual retry button if it takes too long */}
+              <button 
+                onClick={() => window.location.reload()}
+                className="text-xs text-primary mt-4 hover:underline"
+              >
+                Taking too long? Reload
+              </button>
             </div>
           </div>
         </div>
@@ -543,6 +573,12 @@ const ObjectiveCreationAndManagement = () => {
             <div className="text-center">
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-muted-foreground">Loading objectives...</p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="text-xs text-primary mt-4 hover:underline"
+              >
+                Taking too long? Reload
+              </button>
             </div>
           </div>
         </div>
@@ -581,7 +617,7 @@ const ObjectiveCreationAndManagement = () => {
           {/* Desktop Split View / Mobile Conditional View */}
           <div className={`${
             viewMode === 'details' ? 'hidden lg:block' : 'block'
-          } w-full lg:w-2/5 lg:border-r border-border max-w-full overflow-y-auto p-4 sm:p-6`}> 
+          } w-full lg:w-2/5 lg:border-r border-border max-w-full overflow-y-auto p-4 sm:p-6 flex-1`}> 
             
             <ObjectivesList
               objectives={objectives}
@@ -596,7 +632,7 @@ const ObjectiveCreationAndManagement = () => {
 
           <div className={`${
             viewMode === 'list' ? 'hidden lg:block' : 'block'
-          } w-full lg:w-3/5 max-w-full overflow-y-auto p-4 sm:p-6`}>
+          } w-full lg:w-3/5 max-w-full overflow-y-auto p-4 sm:p-6 flex-1`}>
             <ObjectiveDetails
               objective={selectedObjective}
               onEdit={handleEditObjective}

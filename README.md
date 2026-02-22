@@ -243,7 +243,7 @@ npm run build
 
 ## 🙏 Acknowledgments
 
-- Built with [Rocket.new](https://rocket.new)
+- Built By [MM Shareef](https://mmshareef.com)
 - Powered by React and Vite
 - Styled with Tailwind CSS
 
@@ -251,4 +251,4 @@ npm run build
 - **Repository URL**: https://github.com/mmshareef24/trackline
 - **Last Updated**: 2026-02-01
 
-Built with ❤️ on Rocket.new
+

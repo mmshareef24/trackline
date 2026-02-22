@@ -168,7 +168,7 @@ const TeamCheckinsAndCollaboration = () => {
       }`}>
         {/* Page Header */}
         <div className="bg-card border-b border-border p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-foreground">Team Check-ins & Collaboration</h1>
               <p className="text-muted-foreground mt-1">
@@ -176,7 +176,7 @@ const TeamCheckinsAndCollaboration = () => {
               </p>
             </div>
             
-            <div className="flex space-x-3">
+            <div className="flex flex-wrap gap-2 md:gap-3">
               <Button
                 variant={activeView === 'timeline' ? 'default' : 'outline'}
                 size="sm"
@@ -209,47 +209,89 @@ const TeamCheckinsAndCollaboration = () => {
         </div>
 
         {/* Three-Panel Layout */}
-        <div className="flex h-[calc(100vh-8rem)]">
+        <div className="flex flex-col md:flex-row h-[calc(100vh-8rem)] relative">
           {/* Team Members Panel (20%) */}
-          <div className="w-1/5 min-w-[280px]">
+          <div className={`
+            md:w-1/5 md:min-w-[280px] bg-card border-r border-border
+            ${activeView === 'mobile_members' ? 'absolute inset-0 z-20 w-full flex flex-col' : 'hidden md:flex md:flex-col'}
+          `}>
+            {activeView === 'mobile_members' && (
+              <div className="p-4 border-b border-border flex items-center justify-between md:hidden">
+                <h3 className="font-semibold text-foreground">Select Team Member</h3>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setActiveView('timeline')}
+                >
+                  <Icon name="X" size={20} />
+                </Button>
+              </div>
+            )}
             <TeamMemberList
               teamMembers={teamMembers}
               selectedMember={selectedMember}
-              onMemberSelect={handleMemberSelect}
+              onMemberSelect={(member) => {
+                handleMemberSelect(member);
+                // On mobile, close list after selection
+                if (window.innerWidth < 768) setActiveView('timeline');
+              }}
               onFilterChange={(filters) => console.log('Filter change:', filters)}
             />
           </div>
 
-          {/* Main Content Panel (80%) - Expanded to fill the space */}
-          <div className="flex-1">
-            {activeView === 'timeline' && (
-              <CheckinTimeline
-                checkins={filteredCheckins}
-                selectedCheckin={selectedCheckin}
-                onCheckinSelect={handleCheckinSelect}
-                onApproveCheckin={handleApproveCheckin}
-                onCommentCheckin={handleCommentCheckin}
-              />
-            )}
-            
-            {activeView === 'form' && (
-              <CheckinForm
-                selectedMember={selectedMember}
-                onSubmitCheckin={handleSubmitCheckin}
-                onSaveDraft={handleSaveDraft}
-                onCancel={() => setActiveView('timeline')}
-              />
-            )}
-            
-            {activeView === 'collaboration' && (
-              <CollaborationPanel
-                selectedCheckin={selectedCheckin}
-                onAddComment={handleAddComment}
-                teamMembers={teamMembers}
-                onMentionUser={handleMentionUser}
-                onStartThread={handleStartThread}
-              />
-            )}
+          {/* Main Content Panel (80%) */}
+          <div className="flex-1 flex flex-col min-w-0 bg-background">
+            {/* Mobile Member Selector Header */}
+            <div className="md:hidden p-4 border-b border-border flex items-center justify-between bg-card">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                  {selectedMember ? selectedMember.name.charAt(0) : 'A'}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">{selectedMember ? selectedMember.name : 'All Members'}</p>
+                  <p className="text-xs text-muted-foreground">{selectedMember ? selectedMember.role : 'Team View'}</p>
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setActiveView('mobile_members')}
+              >
+                Change
+              </Button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              {activeView === 'timeline' && (
+                <CheckinTimeline
+                  checkins={filteredCheckins}
+                  selectedCheckin={selectedCheckin}
+                  onCheckinSelect={handleCheckinSelect}
+                  onApproveCheckin={handleApproveCheckin}
+                  onCommentCheckin={handleCommentCheckin}
+                />
+              )}
+              
+              {activeView === 'form' && (
+                <CheckinForm
+                  selectedMember={selectedMember}
+                  onSubmitCheckin={handleSubmitCheckin}
+                  onSaveDraft={handleSaveDraft}
+                  onCancel={() => setActiveView('timeline')}
+                />
+              )}
+              
+              {activeView === 'collaboration' && (
+                <CollaborationPanel
+                  selectedCheckin={selectedCheckin}
+                  onAddComment={handleAddComment}
+                  teamMembers={teamMembers}
+                  onMentionUser={handleMentionUser}
+                  onStartThread={handleStartThread}
+                  onBack={() => setActiveView('timeline')}
+                />
+              )}
+            </div>
           </div>
         </div>
       </main>

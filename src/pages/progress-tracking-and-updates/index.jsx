@@ -20,6 +20,7 @@ const ProgressTrackingAndUpdates = () => {
   const [showEvidenceModal, setShowEvidenceModal] = useState(false);
   const [selectedKRForEvidence, setSelectedKRForEvidence] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     status: 'all',
     priority: 'all'
@@ -38,7 +39,13 @@ const ProgressTrackingAndUpdates = () => {
       
       setIsLoading(true);
       try {
-        const { data: objs, error } = await supabase
+        // Create a timeout promise
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timed out')), 15000)
+        );
+
+        // Fetch objectives with timeout
+        const objectivesPromise = supabase
           .from('objectives')
           .select(`
             *,
@@ -46,6 +53,8 @@ const ProgressTrackingAndUpdates = () => {
           `)
           .eq('organization_id', currentOrg.id)
           .order('updated_at', { ascending: false });
+
+        const { data: objs, error } = await Promise.race([objectivesPromise, timeoutPromise]);
 
         if (error) throw error;
 
@@ -74,6 +83,7 @@ const ProgressTrackingAndUpdates = () => {
         }
       } catch (err) {
         console.error('Error fetching objectives:', err);
+        setError(err.message);
       } finally {
         setIsLoading(false);
       }
@@ -183,6 +193,31 @@ const ProgressTrackingAndUpdates = () => {
     // In a real app, this would upload to a server
   };
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <Sidebar />
+        <div className={`transition-all duration-300 pt-16 ${isCollapsed ? 'ml-0 md:ml-16' : 'ml-0 md:ml-60'}`}>
+          <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+            <div className="text-center p-8 max-w-md mx-auto">
+              <div className="text-destructive mb-4">
+                <Icon name="AlertCircle" size={48} className="mx-auto" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Unable to Load Objectives</h3>
+              <p className="text-muted-foreground mb-4 bg-destructive/10 p-3 rounded text-sm font-mono text-left overflow-auto max-h-32">
+                {error}
+              </p>
+              <Button onClick={() => window.location.reload()} variant="outline">
+                Retry
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (isOrgLoading || isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -193,6 +228,12 @@ const ProgressTrackingAndUpdates = () => {
             <div className="text-center">
               <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-muted-foreground">{isOrgLoading ? 'Loading organization...' : 'Loading objectives...'}</p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="text-xs text-primary mt-4 hover:underline"
+              >
+                Taking too long? Reload
+              </button>
             </div>
           </div>
         </div>
@@ -212,9 +253,9 @@ const ProgressTrackingAndUpdates = () => {
         <QuickStatsBar objectives={objectives} />
 
         {/* Main Content */}
-        <div className="flex h-[calc(100vh-140px)]">
-          {/* Objectives List - 30% width */}
-          <div className="w-full md:w-[30%] border-r border-border">
+        <div className="flex h-[calc(100vh-140px)] relative">
+          {/* Objectives List - 30% width on desktop, full width on mobile if no selection */}
+          <div className={`w-full md:w-[30%] border-r border-border ${selectedObjective ? 'hidden md:block' : 'block'}`}>
             <ObjectivesList
               objectives={objectives}
               selectedObjective={selectedObjective}
@@ -225,48 +266,55 @@ const ProgressTrackingAndUpdates = () => {
             />
           </div>
 
-          {/* Progress Panel - 70% width */}
-          <div className="hidden md:block w-[70%]">
-            <ProgressPanel
-              objective={selectedObjective}
-              onProgressUpdate={handleProgressUpdate}
-              onCommentAdd={handleCommentAdd}
-              onEvidenceUpload={handleEvidenceUpload}
-            />
+          {/* Progress Panel - 70% width on desktop, full width on mobile if selection active */}
+          <div className={`w-full md:w-[70%] ${selectedObjective ? 'block' : 'hidden md:block'}`}>
+            {selectedObjective ? (
+              <div className="h-full flex flex-col">
+                {/* Mobile Back Button */}
+                <div className="md:hidden p-4 border-b border-border flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    iconName="ArrowLeft"
+                    onClick={() => setSelectedObjective(null)}
+                  >
+                    Back to List
+                  </Button>
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <ProgressPanel
+                    objective={selectedObjective}
+                    onProgressUpdate={handleProgressUpdate}
+                    onCommentAdd={handleCommentAdd}
+                    onEvidenceUpload={handleEvidenceUpload}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="h-full flex items-center justify-center bg-muted/10">
+                <div className="text-center p-6">
+                  <Icon name="Target" size={48} className="text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-2">Select an Objective</h3>
+                  <p className="text-muted-foreground">Choose an objective from the list to track progress</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Mobile Progress Panel */}
-        {selectedObjective && (
-          <div className="md:hidden">
-            <div className="p-4 border-t border-border bg-card">
-              <Button
-                variant="outline"
-                fullWidth
-                iconName="ChevronUp"
-                iconPosition="left"
-                onClick={() => {
-                  // In a real app, this would open a modal or slide-up panel
-                  console.log('Open mobile progress panel');
-                }}
-              >
-                View Progress Details
-              </Button>
-            </div>
+        {/* Floating Action Button - Mobile (only visible on list view) */}
+        {!selectedObjective && (
+          <div className="fixed bottom-20 right-4 md:hidden">
+            <Button
+              variant="default"
+              size="icon"
+              className="w-14 h-14 rounded-full shadow-lg"
+              onClick={() => setShowBulkModal(true)}
+            >
+              <Icon name="Edit" size={24} />
+            </Button>
           </div>
         )}
-
-        {/* Floating Action Button - Mobile */}
-        <div className="fixed bottom-20 right-4 md:hidden">
-          <Button
-            variant="default"
-            size="icon"
-            className="w-14 h-14 rounded-full shadow-lg"
-            onClick={() => setShowBulkModal(true)}
-          >
-            <Icon name="Edit" size={24} />
-          </Button>
-        </div>
       </main>
 
       {/* Modals */}

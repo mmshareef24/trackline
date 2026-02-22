@@ -64,7 +64,19 @@ const CollaborationPanel = ({ selectedCheckin, onAddComment, onMentionUser, onSt
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-foreground">Collaboration</h2>
+          <div className="flex items-center gap-2">
+            {onBack && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="md:hidden"
+                onClick={onBack}
+              >
+                <Icon name="ArrowLeft" size={20} />
+              </Button>
+            )}
+            <h2 className="text-lg font-semibold text-foreground">Collaboration</h2>
+          </div>
           <Button variant="ghost" size="sm" iconName="MoreHorizontal" />
         </div>
 

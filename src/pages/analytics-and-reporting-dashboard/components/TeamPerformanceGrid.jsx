@@ -36,7 +36,9 @@ const TeamPerformanceGrid = ({ teams }) => {
                   </div>
                   <div>
                     <h4 className="font-medium text-foreground">{team?.name || 'Unknown Team'}</h4>
-                    <p className="text-sm text-muted-foreground">{team?.members || 0} members</p>
+                    <p className="text-sm text-muted-foreground">
+                      {typeof team?.members === 'number' ? `${team.members} members` : team?.members}
+                    </p>
                   </div>
                 </div>
               <div className={`flex items-center space-x-1 px-2 py-1 rounded-full ${getPerformanceColor(team?.performance)}`}>

@@ -30,11 +30,7 @@ const MilestoneDetails = ({ milestone, onUpdate, onClose }) => {
   { value: 'low', label: 'Low Priority' }];
 
 
-  const assigneeOptions = [
-  { value: 'john-doe', label: 'John Doe' },
-  { value: 'sarah-wilson', label: 'Sarah Wilson' },
-  { value: 'mike-chen', label: 'Mike Chen' },
-  { value: 'emily-davis', label: 'Emily Davis' }];
+  const assigneeOptions = [];
 
 
   const handleSave = () => {
